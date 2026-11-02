@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Freelancers - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="bg-white border-bottom py-4 mb-4">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Explore Professional Freelancers</h1>
+                <p class="text-secondary small mb-0">Discover verified experts, view their portfolios, and request a personalized consultation.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('browse_services') }}" class="btn btn-outline-info btn-sm">
+                    <i class="fa-solid fa-bolt me-1"></i> Looking for Fixed Services instead?
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4">
+        <!-- Filter Sidebar -->
+        <div class="col-lg-3">
+            <div class="card custom-card p-4 sticky-top" style="top: 85px; z-index: 10;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-sliders me-2 text-primary"></i> Filter Talent</h5>
+                    <a href="{{ url_for('explore_freelancers') }}" class="small text-muted text-decoration-none">Reset</a>
+                </div>
+
+                <form method="GET" action="{{ url_for('explore_freelancers') }}">
+                    <!-- Keyword Search -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Keywords / Skills</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                            <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="e.g. Python, Figma">
+                        </div>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Category / Domain</label>
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            <option value="AI & Data Science" {% if selected_category == 'AI & Data Science' %}selected{% endif %}>AI & Data Science</option>
+                            <option value="Development" {% if selected_category == 'Development' %}selected{% endif %}>Web & Software Development</option>
+                            <option value="Mobile Apps" {% if selected_category == 'Mobile Apps' %}selected{% endif %}>Mobile App Development</option>
+                            <option value="Design" {% if selected_category == 'Design' %}selected{% endif %}>UI/UX & Brand Design</option>
+                            <option value="Writing" {% if selected_category == 'Writing' %}selected{% endif %}>Technical Writing & SEO</option>
+                            <option value="DevOps & Cloud" {% if selected_category == 'DevOps & Cloud' %}selected{% endif %}>DevOps & Cloud</option>
+                            <option value="Blockchain & Web3" {% if selected_category == 'Blockchain & Web3' %}selected{% endif %}>Blockchain & Web3</option>
+                            <option value="Video & Motion" {% if selected_category == 'Video & Motion' %}selected{% endif %}>Video & 3D Motion</option>
+                            <option value="Cybersecurity" {% if selected_category == 'Cybersecurity' %}selected{% endif %}>Cybersecurity</option>
+                            <option value="Business & Analytics" {% if selected_category == 'Business & Analytics' %}selected{% endif %}>Business & Analytics</option>
+                            <option value="Game Development" {% if selected_category == 'Game Development' %}selected{% endif %}>Game Development</option>
+                            <option value="Digital Marketing" {% if selected_category == 'Digital Marketing' %}selected{% endif %}>Digital Marketing</option>
+                        </select>
+                    </div>
+
+                    <!-- Min Experience -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Minimum Experience</label>
+                        <select name="min_exp" class="form-select">
+                            <option value="0">Any Experience</option>
+                            <option value="3" {% if min_exp == 3 %}selected{% endif %}>3+ Years</option>
+                            <option value="5" {% if min_exp == 5 %}selected{% endif %}>5+ Years</option>
+                            <option value="7" {% if min_exp == 7 %}selected{% endif %}>7+ Years</option>
+                        </select>
+                    </div>
+
+                    <!-- Max Hourly Rate -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold d-flex justify-content-between">
+                            <span>Max Hourly Rate</span>
+                            <span class="text-primary fw-bold" id="rateDisplay">₹{{ max_rate or 3000 }}</span>
+                        </label>
+                        <input type="range" class="form-range" name="max_rate" id="maxRateRange" min="500" max="5000" step="250" value="{{ max_rate or 3000 }}" oninput="document.getElementById('rateDisplay').innerText = '₹' + this.value">
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>₹500</span>
+                            <span>₹5,000+</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Apply Filters
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Freelancers Grid -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted small">Showing <strong>{{ freelancers|length }}</strong> available professionals</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted">Sort by:</span>
+                    <span class="badge bg-light text-dark border">Top Rated</span>
+                </div>
+            </div>
+
+            {% if freelancers %}
+                <div class="row g-4">
+                    {% for f in freelancers %}
+                    <div class="col-md-6">
+                        <div class="card custom-card interactive-card h-100 p-4 d-flex flex-column">
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <img src="{{ f.avatar_url or 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150' }}" 
+                                     alt="{{ f.full_name }}" class="avatar-img">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="mb-0 fw-bold">
+                                            <a href="{{ url_for('freelancer_profile', freelancer_id=f.user_id) }}" class="text-dark text-decoration-none">
+                                                {{ f.full_name }}
+                                            </a>
+                                        </h5>
+                                        <span class="badge bg-success-subtle text-success small">{{ f.availability }}</span>
+                                    </div>
+                                    <span class="badge bg-secondary-subtle text-secondary small mt-1">{{ f.category }}</span>
+                                    
+                                    <div class="d-flex align-items-center gap-1 mt-1 small">
+                                        <span class="rating-stars"><i class="fa-solid fa-star"></i></span>
+                                        <span class="fw-bold">{{ "%.1f"|format(f.rating_avg) }}</span>
+                                        <span class="text-muted">({{ f.rating_count }} reviews)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="fw-semibold text-dark small mb-2" style="min-height: 40px;">
+                                {{ f.headline }}
+                            </p>
+
+                            <p class="text-secondary small mb-3 text-truncate-2">
+                                {{ f.bio }}
+                            </p>
+
+                            <div class="mb-3" style="min-height: 52px;">
+                                {% for skill in f.skills.split(',') %}
+                                    {% if loop.index <= 4 %}
+                                        <span class="skill-badge">{{ skill.strip() }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto mb-3">
+                                <div>
+                                    <small class="text-muted d-block">Indicative Rate</small>
+                                    <span class="fw-bold text-dark fs-5">₹{{ "{:,.0f}".format(f.hourly_rate) }}</span><small class="text-muted">/hr</small>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Experience</small>
+                                    <span class="fw-bold text-dark">{{ f.experience }}+ years</span>
+                                </div>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a href="{{ url_for('freelancer_profile', freelancer_id=f.user_id) }}" class="btn btn-outline-primary btn-sm w-100">
+                                        View Profile
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a href="{{ url_for('request_consultation', freelancer_id=f.user_id) }}" class="btn btn-consult btn-sm w-100">
+                                        <i class="fa-solid fa-comments me-1"></i> Consult
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card custom-card text-center p-5">
+                    <i class="fa-solid fa-user-slash text-muted fs-1 mb-3"></i>
+                    <h4>No Freelancers Found</h4>
+                    <p class="text-muted">Try adjusting your keyword, category, or experience filters.</p>
+                    <div>
+                        <a href="{{ url_for('explore_freelancers') }}" class="btn btn-primary btn-sm">Clear All Filters</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

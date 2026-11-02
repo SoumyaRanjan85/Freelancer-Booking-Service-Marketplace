@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Requirement Candidates: {{ client_request.title }} - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('client_requests_board') }}">Requirement Board</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ client_request.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Requirement Header Card -->
+            <div class="card custom-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <div>
+                        <span class="badge bg-secondary-subtle text-secondary small">{{ client_request.category }}</span>
+                        <h3 class="fw-bold mb-1">{{ client_request.title }}</h3>
+                    </div>
+                    <span class="status-badge status-badge-{{ client_request.status|lower }}">{{ client_request.status }}</span>
+                </div>
+                <div class="mb-3 text-secondary small">
+                    Budget: <strong>₹{{ "{:,.0f}".format(client_request.budget_min) }} - ₹{{ "{:,.0f}".format(client_request.budget_max) }}</strong> &bull; 
+                    Deadline: <strong>{{ client_request.deadline }}</strong>
+                </div>
+                <p class="text-secondary small mb-3" style="line-height: 1.6; white-space: pre-line;">
+                    {{ client_request.description }}
+                </p>
+                {% if client_request.required_skills %}
+                    <div>
+                        <span class="small fw-semibold text-muted me-2">Required Skills:</span>
+                        {% for skill in client_request.required_skills.split(',') %}
+                            <span class="skill-badge">{{ skill.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Interested Candidates List -->
+            <div class="card custom-card p-4">
+                <h4 class="fw-bold mb-3"><i class="fa-solid fa-users text-primary me-2"></i> Interested Freelancers ({{ interests|length }})</h4>
+                <p class="small text-muted mb-4">Review candidate profiles and pitches, then invite your preferred freelancer to schedule a consultation.</p>
+
+                {% if interests %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for item in interests %}
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="{{ item.avatar_url or 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }}" 
+                                         class="avatar-img" width="48" height="48">
+                                    <div>
+                                        <h5 class="mb-0 fw-bold">
+                                            <a href="{{ url_for('freelancer_profile', freelancer_id=item.freelancer_id) }}" class="text-dark text-decoration-none">
+                                                {{ item.freelancer_name }}
+                                            </a>
+                                        </h5>
+                                        <div class="small text-muted">{{ item.headline }}</div>
+                                        <div class="d-flex align-items-center gap-2 small mt-1">
+                                            <span class="rating-stars"><i class="fa-solid fa-star"></i></span>
+                                            <span class="fw-bold">{{ "%.1f"|format(item.rating_avg) }}</span>
+                                            <span>&bull; ₹{{ "{:,.0f}".format(item.hourly_rate) }}/hr</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="status-badge status-badge-{{ item.status|lower }}">{{ item.status }}</span>
+                                </div>
+                            </div>
+
+                            <div class="p-2 bg-white rounded border small text-secondary mb-3">
+                                <strong>Pitch:</strong> "{{ item.message }}"
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('freelancer_profile', freelancer_id=item.freelancer_id) }}" class="btn btn-outline-secondary btn-sm">
+                                    View Full Profile
+                                </a>
+                                <a href="{{ url_for('request_consultation', freelancer_id=item.freelancer_id) }}" class="btn btn-consult btn-sm">
+                                    <i class="fa-solid fa-comments me-1"></i> Invite to Consultation
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="fa-solid fa-user-clock fs-2 mb-2 d-block"></i>
+                        No freelancers have expressed interest yet. Freelancers browsing the requirement board can pitch here.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card custom-card p-4 sticky-top" style="top: 85px;">
+                <h5 class="fw-bold mb-3">Requirement Management</h5>
+                <p class="small text-muted mb-3">
+                    Once you find a suitable candidate, initiate a consultation to negotiate custom timeline and pricing.
+                </p>
+                <form method="POST" action="{{ url_for('toggle_client_request_status', request_id=client_request.request_id) }}">
+                    {% if client_request.status == 'Open' %}
+                        <input type="hidden" name="status" value="Closed">
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="fa-solid fa-ban me-1"></i> Close Requirement
+                        </button>
+                    {% else %}
+                        <input type="hidden" name="status" value="Open">
+                        <button type="submit" class="btn btn-outline-success btn-sm w-100">
+                            <i class="fa-solid fa-circle-check me-1"></i> Re-open Requirement
+                        </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

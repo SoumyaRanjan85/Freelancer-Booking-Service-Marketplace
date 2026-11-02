@@ -1,0 +1,522 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - {{ user.full_name }} - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="bg-white border-bottom py-4 mb-4">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <img src="{{ user.avatar_url or 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }}" 
+                     class="avatar-img" width="56" height="56">
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h2 class="fw-bold mb-0">{{ user.full_name }}</h2>
+                        <span class="badge bg-primary text-uppercase">{{ user.role }}</span>
+                    </div>
+                    <small class="text-secondary">{{ user.email }}</small>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                {% if user.role == 'freelancer' %}
+                    <button type="button" class="btn btn-service btn-sm" data-bs-toggle="modal" data-bs-target="#createServiceModal">
+                        <i class="fa-solid fa-plus me-1"></i> Publish New Service
+                    </button>
+                    <a href="{{ url_for('freelancer_profile', freelancer_id=user.user_id) }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fa-solid fa-eye me-1"></i> Public Profile
+                    </a>
+                {% elif user.role == 'client' %}
+                    <a href="{{ url_for('client_requests_board') }}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-plus me-1"></i> Post Project Requirement
+                    </a>
+                {% endif %}
+                <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fa-solid fa-gear me-1"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Quick KPI Metrics Cards -->
+    <div class="row g-3 mb-4">
+        {% if user.role == 'client' %}
+            <div class="col-md-3 col-6">
+                <div class="card custom-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted d-block">Active Projects</small>
+                            <span class="fs-4 fw-bold text-dark">{{ active_bookings_count }}</span>
+                        </div>
+                        <div class="bg-primary-subtle text-primary p-3 rounded-circle">
+                            <i class="fa-solid fa-briefcase fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card custom-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted d-block">Consultations</small>
+                            <span class="fs-4 fw-bold text-dark">{{ consultations|length }}</span>
+                        </div>
+                        <div class="bg-purple-subtle text-purple p-3 rounded-circle" style="background-color: #f3e8ff; color: #7e22ce;">
+                            <i class="fa-solid fa-comments fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card custom-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted d-block">Active Negotiations</small>
+                            <span class="fs-4 fw-bold text-dark">{{ negotiations_count }}</span>
+                        </div>
+                        <div class="bg-info-subtle text-info p-3 rounded-circle">
+                            <i class="fa-solid fa-scale-balanced fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card custom-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted d-block">Completed Orders</small>
+                            <span class="fs-4 fw-bold text-success">{{ completed_bookings_count }}</span>
+                        </div>
+                        <div class="bg-success-subtle text-success p-3 rounded-circle">
+                            <i class="fa-solid fa-circle-check fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% elif user.role == 'freelancer' %}
+            <div class="col-md-3 col-6">
+                <div class="card custom-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted d-block">Active Engagements</small>
+                            <span class="fs-4 fw-bold text-dark">{{ active_bookings_count }}</span>
+                        </div>
+                        <div class="bg-primary-subtle text-primary p-3 rounded-circle">
+                            <i class="fa-solid fa-list-check fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card custom-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted d-block">Meeting Requests</small>
+                            <span class="fs-4 fw-bold text-dark">{{ consultations|length }}</span>
+                        </div>
+                        <div class="bg-purple-subtle text-purple p-3 rounded-circle" style="background-color: #f3e8ff; color: #7e22ce;">
+                            <i class="fa-solid fa-comments fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card custom-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted d-block">Published Services</small>
+                            <span class="fs-4 fw-bold text-info">{{ services|length }}</span>
+                        </div>
+                        <div class="bg-info-subtle text-info p-3 rounded-circle">
+                            <i class="fa-solid fa-cubes fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="card custom-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted d-block">Total Project Value</small>
+                            <span class="fs-4 fw-bold text-success">₹{{ "{:,.0f}".format(total_earnings) }}</span>
+                        </div>
+                        <div class="bg-success-subtle text-success p-3 rounded-circle">
+                            <i class="fa-solid fa-indian-rupee-sign fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs nav-fill mb-4 bg-white p-2 rounded-3 border" id="dashTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button" role="tab">
+                <i class="fa-solid fa-briefcase me-1"></i> Orders & Custom Projects ({{ bookings|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="consultations-tab" data-bs-toggle="tab" data-bs-target="#consultations" type="button" role="tab">
+                <i class="fa-solid fa-comments me-1"></i> Consultations ({{ consultations|length }})
+            </button>
+        </li>
+        {% if user.role == 'freelancer' %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="services-tab" data-bs-toggle="tab" data-bs-target="#servicesTab" type="button" role="tab">
+                    <i class="fa-solid fa-cubes me-1"></i> My Fixed Services ({{ services|length }})
+                </button>
+            </li>
+        {% elif user.role == 'client' %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requestsTab" type="button" role="tab">
+                    <i class="fa-solid fa-clipboard-list me-1"></i> My Project Requests ({{ my_requests|length }})
+                </button>
+            </li>
+        {% endif %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviewsTab" type="button" role="tab">
+                <i class="fa-regular fa-star me-1"></i> Reviews & Feedback ({{ reviews|length }})
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content Panes -->
+    <div class="tab-content" id="dashTabsContent">
+        <!-- 1. Bookings & Custom Projects Tab -->
+        <div class="tab-pane fade show active" id="projects" role="tabpanel">
+            <div class="card custom-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Engagements & Orders</h5>
+                    <span class="small text-muted">Fixed packages and negotiated custom projects</span>
+                </div>
+
+                {% if bookings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Type</th>
+                                    <th>Project / Service</th>
+                                    <th>Party</th>
+                                    <th>Agreed Amount</th>
+                                    <th>Delivery Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for b in bookings %}
+                                <tr>
+                                    <td class="fw-bold small">#{{ b.booking_id }}</td>
+                                    <td>
+                                        <span class="badge {% if b.booking_type == 'Fixed' %}bg-info{% else %}bg-primary{% endif %}">
+                                            {{ b.booking_type }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">
+                                            {% if b.booking_type == 'Fixed' %}
+                                                {{ b.service_title }}
+                                            {% else %}
+                                                {{ b.request_title }}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="small">
+                                        {% if user.role == 'client' %}
+                                            <i class="fa-solid fa-user-tie text-muted me-1"></i> {{ b.freelancer_name }}
+                                        {% else %}
+                                            <i class="fa-solid fa-user text-muted me-1"></i> {{ b.client_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-bold text-dark">₹{{ "{:,.0f}".format(b.agreed_amount) }}</td>
+                                    <td class="small text-muted">{{ b.delivery_date }}</td>
+                                    <td>
+                                        <span class="status-badge status-badge-{{ b.status|lower|replace(' ', '-') }}">
+                                            {{ b.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('view_booking', booking_id=b.booking_id) }}" class="btn btn-outline-primary btn-sm">
+                                            Manage Order
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="fa-solid fa-inbox fs-2 mb-2 d-block"></i>
+                        No active or past bookings found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 2. Consultations Tab -->
+        <div class="tab-pane fade" id="consultations" role="tabpanel">
+            <div class="card custom-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Consultation Meeting Requests</h5>
+                    <span class="small text-muted">Model A Workflow Entrance</span>
+                </div>
+
+                {% if consultations %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Meeting Title</th>
+                                    <th>With</th>
+                                    <th>Scheduled Time</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in consultations %}
+                                <tr>
+                                    <td class="fw-bold small">#{{ c.consultation_id }}</td>
+                                    <td class="fw-semibold text-dark">{{ c.request_title }}</td>
+                                    <td class="small">
+                                        {% if user.role == 'client' %}
+                                            {{ c.freelancer_name }}
+                                        {% else %}
+                                            {{ c.client_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="small text-muted">{{ c.preferred_datetime }}</td>
+                                    <td class="small"><span class="badge bg-light text-dark border">{{ c.meeting_type }}</span></td>
+                                    <td>
+                                        <span class="status-badge status-badge-{{ c.status|lower|replace(' ', '-') }}">
+                                            {{ c.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('consultation_details', consultation_id=c.consultation_id) }}" class="btn btn-outline-secondary">
+                                                Meeting Info
+                                            </a>
+                                            {% if c.status in ['Accepted', 'Completed'] %}
+                                                <a href="{{ url_for('negotiation_room', consultation_id=c.consultation_id) }}" class="btn btn-consult">
+                                                    Negotiation Workspace
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="fa-solid fa-comments text-muted fs-2 mb-2 d-block"></i>
+                        No consultations requested yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 3. Freelancer Services Tab -->
+        {% if user.role == 'freelancer' %}
+        <div class="tab-pane fade" id="servicesTab" role="tabpanel">
+            <div class="card custom-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">My Published Service Packages</h5>
+                    <button type="button" class="btn btn-service btn-sm" data-bs-toggle="modal" data-bs-target="#createServiceModal">
+                        <i class="fa-solid fa-plus me-1"></i> Add Service
+                    </button>
+                </div>
+
+                {% if services %}
+                    <div class="row g-3">
+                        {% for s in services %}
+                        <div class="col-md-6">
+                            <div class="card border rounded-3 p-3 bg-light-subtle h-100 d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-info-subtle text-info">{{ s.category }}</span>
+                                    <span class="status-badge status-badge-{{ s.status|lower }}">{{ s.status }}</span>
+                                </div>
+                                <h6 class="fw-bold mb-1">{{ s.title }}</h6>
+                                <p class="small text-muted mb-2 text-truncate-2">{{ s.description }}</p>
+                                <div class="small text-secondary mb-3">
+                                    <strong>₹{{ "{:,.0f}".format(s.price) }}</strong> &bull; {{ s.delivery_days }} days delivery &bull; {{ s.revisions }} revisions
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+                                    <a href="{{ url_for('service_details', service_id=s.service_id) }}" class="btn btn-sm btn-outline-info">
+                                        Preview Listing
+                                    </a>
+                                    <form method="POST" action="{{ url_for('delete_service', service_id=s.service_id) }}" onsubmit="return confirm('Delete this service package?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fa-solid fa-trash me-1"></i> Remove
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="fa-solid fa-cubes fs-2 mb-2 d-block"></i>
+                        You haven't published any fixed-price services yet. Click above to add one!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 3b. Client Requests Tab -->
+        {% if user.role == 'client' %}
+        <div class="tab-pane fade" id="requestsTab" role="tabpanel">
+            <div class="card custom-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">My Open Project Requirements</h5>
+                    <a href="{{ url_for('client_requests_board') }}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-plus me-1"></i> Post New Requirement
+                    </a>
+                </div>
+
+                {% if my_requests %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for r in my_requests %}
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="badge bg-secondary-subtle text-secondary small">{{ r.category }}</span>
+                                    <h5 class="fw-bold mb-1">{{ r.title }}</h5>
+                                    <small class="text-muted">Budget: ₹{{ "{:,.0f}".format(r.budget_min) }} - ₹{{ "{:,.0f}".format(r.budget_max) }} &bull; Target: {{ r.deadline }}</small>
+                                </div>
+                                <span class="status-badge status-badge-{{ r.status|lower }}">{{ r.status }}</span>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-2">
+                                <a href="{{ url_for('client_request_details', request_id=r.request_id) }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fa-solid fa-users me-1"></i> View Interested Candidates ({{ r.interest_count }})
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="fa-solid fa-clipboard-list fs-2 mb-2 d-block"></i>
+                        No requirements posted yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 4. Reviews Tab -->
+        <div class="tab-pane fade" id="reviewsTab" role="tabpanel">
+            <div class="card custom-card p-4">
+                <h5 class="fw-bold mb-3">Verified Client Reviews & Testimonials</h5>
+                {% if reviews %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for r in reviews %}
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong class="text-dark">{{ r.client_name }}</strong>
+                                    <span class="text-muted small">for {{ r.service_title or 'Custom Project' }}</span>
+                                </div>
+                                <div>
+                                    {% for i in range(r.rating) %}
+                                        <i class="fa-solid fa-star text-warning small"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p class="text-secondary small mb-1 fst-italic">"{{ r.comment }}"</p>
+                            <small class="text-muted">{{ r.created_at[:10] }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="fa-regular fa-star fs-2 mb-2 d-block"></i>
+                        No reviews recorded yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Publish Fixed-Price Service (For Freelancers) -->
+{% if user.role == 'freelancer' %}
+<div class="modal fade" id="createServiceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Publish Predefined Service Package</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_service') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Service Package Title</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Modern Minimalist Logo Design with Brand Guidelines" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Category</label>
+                            <select name="category" class="form-select" required>
+                                <option value="Development">Development</option>
+                                <option value="Design">Design & Creative</option>
+                                <option value="Writing">Writing & Content</option>
+                                <option value="Marketing">Digital Marketing</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Fixed Price (₹)</label>
+                            <input type="number" min="500" step="100" name="price" class="form-control" placeholder="1499" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Delivery Time (Days)</label>
+                            <input type="number" min="1" max="60" name="delivery_days" class="form-control" placeholder="3" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Number of Revisions</label>
+                            <input type="number" min="0" max="10" name="revisions" class="form-control" placeholder="2" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Deliverables Included (Comma-separated)</label>
+                        <input type="text" name="deliverables" class="form-control" placeholder="3 Concepts, Source Vector File, High-Res PNG/JPG, Commercial Use License" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Detailed Service Description</label>
+                        <textarea name="description" rows="4" class="form-control" placeholder="Explain what the client receives, process, and tools used..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Cover Image (Optional)</label>
+                        <input type="file" name="image_file" class="form-control" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-service btn-sm">Publish Service</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

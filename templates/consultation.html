@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Consultation - {{ consultation.request_title if consultation else 'Request Consultation' }} - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Consultation</li>
+        </ol>
+    </nav>
+
+    {% if not consultation %}
+        <!-- Request New Consultation Form -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card custom-card p-4 p-md-5">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <img src="{{ freelancer.avatar_url or 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150' }}" 
+                             alt="{{ freelancer.full_name }}" class="avatar-img">
+                        <div>
+                            <span class="badge bg-primary-subtle text-primary fw-bold">Model A &bull; Consultation First</span>
+                            <h3 class="fw-bold mb-0">Request Consultation with {{ freelancer.full_name }}</h3>
+                            <small class="text-muted">{{ freelancer.headline }}</small>
+                        </div>
+                    </div>
+
+                    <p class="text-secondary small mb-4">
+                        Share your project vision, target timeline, and preferred meeting slot. Discussing requirements before agreeing on budget ensures aligned expectations and reliable delivery.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('request_consultation', freelancer_id=freelancer.user_id) }}">
+                        <div class="mb-3">
+                            <label for="request_title" class="form-label fw-semibold small">Project / Meeting Title</label>
+                            <input type="text" class="form-control" id="request_title" name="request_title" 
+                                   placeholder="e.g. Custom Multi-Vendor E-Commerce Platform Architecture" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="project_description" class="form-label fw-semibold small">Detailed Project Scope & Requirements</label>
+                            <textarea class="form-control" id="project_description" name="project_description" rows="5" 
+                                      placeholder="Explain the background, core features, existing systems, and specific technical expectations..." required></textarea>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="preferred_datetime" class="form-label fw-semibold small">Preferred Meeting Date & Time</label>
+                                <input type="datetime-local" class="form-control" id="preferred_datetime" name="preferred_datetime" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="meeting_type" class="form-label fw-semibold small">Meeting Format</label>
+                                <select class="form-select" id="meeting_type" name="meeting_type">
+                                    <option value="Online">Online Video / Voice (Google Meet / Zoom)</option>
+                                    <option value="In-person">In-Person Meeting</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="notes" class="form-label fw-semibold small">Preliminary Notes / Questions for Freelancer (Optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="2" 
+                                      placeholder="Any specific questions or prep materials..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('freelancer_profile', freelancer_id=freelancer.user_id) }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-consult py-2 px-4">
+                                <i class="fa-solid fa-paper-plane me-2"></i> Submit Consultation Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Existing Consultation Details & Response Management -->
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card custom-card p-4 mb-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                        <div>
+                            <span class="badge bg-primary-subtle text-primary fw-bold mb-1">Consultation #{{ consultation.consultation_id }}</span>
+                            <h3 class="fw-bold mb-0">{{ consultation.request_title }}</h3>
+                        </div>
+                        <span class="status-badge status-badge-{{ consultation.status|lower|replace(' ', '-') }} fs-6">
+                            {{ consultation.status }}
+                        </span>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <div class="row g-3 small">
+                            <div class="col-sm-6">
+                                <span class="text-muted d-block">Client:</span>
+                                <strong class="text-dark">{{ consultation.client_name }}</strong> ({{ consultation.client_email }})
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted d-block">Freelancer:</span>
+                                <strong class="text-dark">{{ consultation.freelancer_name }}</strong> ({{ consultation.freelancer_email }})
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted d-block">Preferred Date/Time:</span>
+                                <strong class="text-dark"><i class="fa-regular fa-calendar me-1"></i> {{ consultation.preferred_datetime }}</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted d-block">Meeting Type:</span>
+                                <strong class="text-dark"><i class="fa-solid fa-video me-1"></i> {{ consultation.meeting_type }}</strong>
+                            </div>
+                            {% if consultation.meeting_link %}
+                            <div class="col-12 border-top pt-2">
+                                <span class="text-muted d-block">Meeting Link / Location:</span>
+                                <a href="{{ consultation.meeting_link }}" target="_blank" class="fw-bold text-primary">
+                                    <i class="fa-solid fa-link me-1"></i> {{ consultation.meeting_link }}
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">Project Requirements</h5>
+                    <p class="text-secondary mb-4" style="line-height: 1.7; white-space: pre-line;">
+                        {{ consultation.project_description }}
+                    </p>
+
+                    {% if consultation.notes %}
+                        <h6 class="fw-bold mb-2">Discussion Notes:</h6>
+                        <div class="p-3 bg-white border rounded-3 text-secondary small mb-4">
+                            {{ consultation.notes }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Freelancer Action Controls (If status is Pending or Reschedule Requested) -->
+                    {% if session.get('user_id') == consultation.freelancer_id and consultation.status in ['Pending', 'Reschedule Requested'] %}
+                        <div class="border-top pt-4">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-gavel text-primary me-2"></i> Respond to Meeting Request</h5>
+                            
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <button type="button" class="btn btn-success" data-bs-toggle="collapse" data-bs-target="#acceptForm">
+                                    <i class="fa-solid fa-check me-1"></i> Accept Consultation
+                                </button>
+                                <button type="button" class="btn btn-warning" data-bs-toggle="collapse" data-bs-target="#rescheduleForm">
+                                    <i class="fa-solid fa-clock-rotate-left me-1"></i> Propose Reschedule
+                                </button>
+                                <form method="POST" action="{{ url_for('update_consultation_status', consultation_id=consultation.consultation_id) }}" onsubmit="return confirm('Reject this consultation request?');" class="d-inline">
+                                    <input type="hidden" name="status" value="Rejected">
+                                    <button type="submit" class="btn btn-outline-danger">
+                                        <i class="fa-solid fa-xmark me-1"></i> Decline
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Accept Collapse Form -->
+                            <div class="collapse mb-3" id="acceptForm">
+                                <div class="card card-body bg-light border">
+                                    <h6 class="fw-bold text-success mb-2">Confirm Acceptance & Provide Meeting Link</h6>
+                                    <form method="POST" action="{{ url_for('update_consultation_status', consultation_id=consultation.consultation_id) }}">
+                                        <input type="hidden" name="status" value="Accepted">
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold">Meeting URL (Google Meet / Zoom / Microsoft Teams)</label>
+                                            <input type="url" name="meeting_link" class="form-control" placeholder="https://meet.google.com/abc-defg-hij" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold">Optional Message / Preparation Note</label>
+                                            <textarea name="notes" class="form-control" rows="2" placeholder="Looking forward to our discussion! Please have your wireframes ready."></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-sm">Confirm Meeting</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Reschedule Collapse Form -->
+                            <div class="collapse mb-3" id="rescheduleForm">
+                                <div class="card card-body bg-light border">
+                                    <h6 class="fw-bold text-warning mb-2">Propose Another Date & Time</h6>
+                                    <form method="POST" action="{{ url_for('update_consultation_status', consultation_id=consultation.consultation_id) }}">
+                                        <input type="hidden" name="status" value="Reschedule Requested">
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold">Proposed Alternative Slot</label>
+                                            <input type="datetime-local" name="preferred_datetime" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold">Reason / Note for Client</label>
+                                            <textarea name="notes" class="form-control" rows="2" placeholder="I have a conflict at that time, but am free for the slot above!"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-warning btn-sm">Send Reschedule Request</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Client Reschedule Response (If status is Reschedule Requested) -->
+                    {% if session.get('user_id') == consultation.client_id and consultation.status == 'Reschedule Requested' %}
+                        <div class="alert alert-warning border-warning">
+                            <h6 class="fw-bold mb-1"><i class="fa-solid fa-clock-rotate-left me-1"></i> Freelancer Requested Reschedule</h6>
+                            <p class="small mb-3">Proposed alternative slot: <strong>{{ consultation.preferred_datetime }}</strong></p>
+                            <form method="POST" action="{{ url_for('update_consultation_status', consultation_id=consultation.consultation_id) }}" class="d-flex gap-2">
+                                <input type="hidden" name="status" value="Accepted">
+                                <button type="submit" class="btn btn-success btn-sm">Accept New Slot</button>
+                            </form>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Next Step Sidebar: Negotiation Workspace Gateway -->
+            <div class="col-lg-4">
+                <div class="card custom-card p-4 sticky-top" style="top: 85px;">
+                    <span class="badge bg-primary-subtle text-primary fw-bold mb-2">Workflow Progression</span>
+                    <h5 class="fw-bold mb-3">Project Negotiation Workspace</h5>
+                    
+                    {% if consultation.status == 'Accepted' or consultation.status == 'Completed' %}
+                        <p class="small text-secondary mb-3">
+                            Consultation is accepted! Proceed to the <strong>Negotiation Workspace</strong> to create structured proposals, counteroffers, and finalize custom project terms.
+                        </p>
+                        <a href="{{ url_for('negotiation_room', consultation_id=consultation.consultation_id) }}" class="btn btn-primary w-100 py-3 mb-3">
+                            <i class="fa-solid fa-comments-dollar me-2"></i> Open Negotiation Workspace
+                        </a>
+                    {% else %}
+                        <p class="small text-muted mb-3">
+                            Negotiation unlocks as soon as the meeting request is accepted by both parties.
+                        </p>
+                        <button class="btn btn-light w-100 py-2 text-muted" disabled>
+                            <i class="fa-solid fa-lock me-1"></i> Negotiation Locked
+                        </button>
+                    {% endif %}
+
+                    <hr>
+                    <div class="small text-muted">
+                        <div class="fw-bold text-dark mb-1">Model A Summary:</div>
+                        <ol class="ps-3 mb-0">
+                            <li>Request Consultation</li>
+                            <li>Discuss on Google Meet / Zoom</li>
+                            <li>Exchange structured proposals</li>
+                            <li>Agree and start custom project</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

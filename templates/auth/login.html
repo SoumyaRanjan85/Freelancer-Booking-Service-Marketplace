@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Log In - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-8">
+            <div class="card custom-card p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <span class="brand-badge fs-4 mb-2 d-inline-block p-3 rounded-4" style="background: linear-gradient(135deg, #4f46e5, #0ea5e9); color: #fff;">
+                        <i class="fa-solid fa-lock"></i>
+                    </span>
+                    <h2 class="fw-bold">Welcome Back</h2>
+                    <p class="text-muted small">Sign in to manage your consultations, negotiations & bookings</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold small">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-regular fa-envelope text-muted"></i></span>
+                            <input type="email" class="form-control border-start-0" id="email" name="email" placeholder="name@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="password" class="form-label fw-semibold small mb-0">Password</label>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-key text-muted"></i></span>
+                            <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                        <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Sign In
+                    </button>
+                </form>
+
+                <div class="text-center mb-4">
+                    <span class="small text-muted">Don't have an account? <a href="{{ url_for('register') }}" class="fw-bold">Register here</a></span>
+                </div>
+
+                <!-- Instant Demo Login Auto-fill Box -->
+                <div class="border-top pt-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <small class="fw-bold text-uppercase text-muted">Quick Demo Logins</small>
+                        <span class="badge bg-primary-subtle text-primary">1-Click AutoFill</span>
+                    </div>
+                    
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <button type="button" class="demo-login-btn d-flex align-items-center justify-content-between" 
+                                    onclick="fillDemoCredentials('client@example.com', 'client123')">
+                                <div class="text-start">
+                                    <div class="fw-bold small text-dark"><i class="fa-solid fa-user me-1 text-primary"></i> Client (Arjun Mehta)</div>
+                                    <small class="text-muted">Hire & Negotiate</small>
+                                </div>
+                                <span class="badge bg-light text-dark border">client@example.com</span>
+                            </button>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="button" class="demo-login-btn d-flex align-items-center justify-content-between" 
+                                    onclick="fillDemoCredentials('freelancer@example.com', 'freelancer123')">
+                                <div class="text-start">
+                                    <div class="fw-bold small text-dark"><i class="fa-solid fa-code me-1 text-info"></i> Freelancer (Vikram Rao)</div>
+                                    <small class="text-muted">Web & Python Dev</small>
+                                </div>
+                                <span class="badge bg-light text-dark border">freelancer@example.com</span>
+                            </button>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="button" class="demo-login-btn d-flex align-items-center justify-content-between" 
+                                    onclick="fillDemoCredentials('designer@example.com', 'designer123')">
+                                <div class="text-start">
+                                    <div class="fw-bold small text-dark"><i class="fa-solid fa-palette me-1 text-purple" style="color: #8b5cf6;"></i> Freelancer (Ananya Sen)</div>
+                                    <small class="text-muted">UI/UX & Logo Design</small>
+                                </div>
+                                <span class="badge bg-light text-dark border">designer@example.com</span>
+                            </button>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="button" class="demo-login-btn d-flex align-items-center justify-content-between" 
+                                    onclick="fillDemoCredentials('admin@freelanceconnect.com', 'admin123')">
+                                <div class="text-start">
+                                    <div class="fw-bold small text-dark"><i class="fa-solid fa-shield-halved me-1 text-danger"></i> Administrator</div>
+                                    <small class="text-muted">Platform Governance</small>
+                                </div>
+                                <span class="badge bg-light text-dark border">admin@freelanceconnect.com</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
