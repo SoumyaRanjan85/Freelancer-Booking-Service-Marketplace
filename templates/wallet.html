@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}Earnings & UPI Wallet - {{ user.full_name }} - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="bg-white border-bottom py-4 mb-4">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fw-bold rounded-pill">
+                        <i class="fa-solid fa-wallet me-1"></i> Freelancer Financial Hub
+                    </span>
+                    <span class="small text-muted">Wallet ID #{{ wallet.wallet_id }}</span>
+                </div>
+                <h1 class="h3 fw-bold mb-1">Earnings, Escrow & UPI Payouts</h1>
+                <p class="text-secondary small mb-0">Track payments secured in escrow, release milestones, and withdraw your earnings directly to your phone's UPI app.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#withdrawModal" {% if wallet.available_balance <= 0 %}disabled{% endif %}>
+                    <i class="fa-solid fa-arrow-up-from-bracket me-1"></i> Withdraw to Phone UPI
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-gauge-high me-1"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- 3 Big Financial KPI Cards -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Available Balance -->
+        <div class="col-md-4">
+            <div class="card custom-card p-4 border-primary-subtle bg-primary-subtle">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-primary small fw-bold text-uppercase">Available for Withdrawal</span>
+                    <div class="bg-primary text-white p-2 rounded-circle" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                    </div>
+                </div>
+                <div class="display-6 fw-extrabold text-primary mb-1">
+                    ₹{{ "{:,.2f}".format(wallet.available_balance) }}
+                </div>
+                <div class="small text-secondary">
+                    Cleared funds ready for instant transfer to your phone's UPI ID.
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Locked in Escrow -->
+        <div class="col-md-4">
+            <div class="card custom-card p-4 border-warning-subtle bg-warning-subtle">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-warning-emphasis small fw-bold text-uppercase">Secured in Escrow</span>
+                    <div class="bg-warning text-dark p-2 rounded-circle" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                </div>
+                <div class="display-6 fw-extrabold text-dark mb-1">
+                    ₹{{ "{:,.2f}".format(wallet.escrow_balance) }}
+                </div>
+                <div class="small text-secondary">
+                    Client funds deposited in escrow trust for active ongoing projects.
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Total Lifetime Earnings -->
+        <div class="col-md-4">
+            <div class="card custom-card p-4 border-success-subtle bg-success-subtle">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-success small fw-bold text-uppercase">Total Lifetime Earnings</span>
+                    <div class="bg-success text-white p-2 rounded-circle" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="display-6 fw-extrabold text-success mb-1">
+                    ₹{{ "{:,.2f}".format(wallet.total_earned) }}
+                </div>
+                <div class="small text-secondary">
+                    Total gross revenue successfully earned on FreelanceConnect.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payout Settings & Linked UPI Box -->
+    <div class="card custom-card p-4 mb-4">
+        <div class="row align-items-center justify-content-between g-3">
+            <div class="col-md-7">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-light p-3 rounded-4 border text-primary fs-3">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Primary UPI Payout Beneficiary</h5>
+                        <p class="text-secondary small mb-0">
+                            Withdrawals are settled directly to this Virtual Payment Address (VPA) via NPCI UPI 2.0.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <form method="POST" action="{{ url_for('update_wallet_upi') }}" class="d-flex gap-2">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fa-solid fa-at text-muted"></i></span>
+                        <input type="text" name="payout_upi_id" class="form-control" 
+                               value="{{ wallet.payout_upi_id or '' }}" placeholder="yourname@okhdfcbank" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary px-3 text-nowrap">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Update UPI
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Ledger & Transaction History -->
+    <div class="card custom-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-bold mb-0">Financial Ledger & Payout History</h5>
+                <span class="small text-muted">All deposits, escrow releases, and bank withdrawals</span>
+            </div>
+            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small">
+                {{ transactions|length }} Records
+            </span>
+        </div>
+
+        {% if transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>Txn ID</th>
+                            <th>Order</th>
+                            <th>Type</th>
+                            <th>Payment Rail</th>
+                            <th>Bank Ref (UTR)</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date & Time</th>
+                            <th class="text-end">Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        {% for t in transactions %}
+                        <tr>
+                            <td class="fw-bold">#{{ t.transaction_id }}</td>
+                            <td>
+                                {% if t.booking_id %}
+                                    <a href="{{ url_for('view_booking', booking_id=t.booking_id) }}" class="text-decoration-none fw-bold">
+                                        Order #{{ t.booking_id }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Direct Payout</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if t.payment_type == 'Escrow_Release' %}bg-success{% elif t.payment_type == 'Payout_Withdrawal' %}bg-primary{% elif t.payment_type == 'Escrow_Deposit' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ t.payment_type|replace('_', ' ') }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-muted"><i class="fa-solid fa-bolt text-warning me-1"></i> UPI</span>
+                            </td>
+                            <td>
+                                <span class="font-monospace text-dark">{{ t.upi_ref_no or 'PENDING-UTR' }}</span>
+                            </td>
+                            <td>
+                                {% if t.payment_type in ['Escrow_Release', 'Escrow_Deposit'] %}
+                                    <strong class="text-success">+₹{{ "{:,.2f}".format(t.amount) }}</strong>
+                                {% else %}
+                                    <strong class="text-primary">-₹{{ "{:,.2f}".format(t.amount) }}</strong>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if t.status == 'Released' %}bg-success-subtle text-success border border-success-subtle{% elif t.status == 'Escrow_Locked' %}bg-warning-subtle text-dark border border-warning-subtle{% else %}bg-light text-muted border{% endif %}">
+                                    {{ t.status }}
+                                </span>
+                            </td>
+                            <td class="text-muted">{{ t.completed_at or t.created_at }}</td>
+                            <td class="text-end">
+                                <a href="{{ url_for('view_payment_receipt', transaction_id=t.transaction_id) }}" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2">
+                                    <i class="fa-solid fa-file-invoice me-1"></i> Invoice
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-4 text-center text-muted">
+                <i class="fa-solid fa-receipt fs-1 mb-2 d-block text-secondary opacity-50"></i>
+                No transaction records found in your financial ledger yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- UPI Payout Withdrawal Modal -->
+<div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom pb-3">
+                <h5 class="modal-title fw-bold" id="withdrawModalLabel">
+                    <i class="fa-solid fa-arrow-up-from-bracket text-primary me-2"></i> Instant Phone UPI Payout
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('withdraw_wallet') }}">
+                <div class="modal-body p-4">
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Available Balance</span>
+                            <strong class="fs-5 text-success">₹{{ "{:,.2f}".format(wallet.available_balance) }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Withdrawal Amount (INR)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">₹</span>
+                            <input type="number" step="1" min="100" max="{{ wallet.available_balance }}" 
+                                   name="amount" class="form-control fs-5 fw-bold" value="{{ wallet.available_balance|int }}" required>
+                        </div>
+                        <div class="form-text small">Minimum withdrawal: ₹100. Settle instantly via IMPS/UPI.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Beneficiary Phone UPI ID (VPA)</label>
+                        <input type="text" name="target_upi_id" class="form-control" 
+                               value="{{ wallet.payout_upi_id or '' }}" placeholder="yourname@okhdfcbank" required>
+                        <div class="form-text small">Funds will be transferred directly to the bank account linked with this UPI ID.</div>
+                    </div>
+
+                    <div class="p-3 bg-primary-subtle rounded-3 border border-primary-subtle small text-secondary">
+                        <i class="fa-solid fa-bolt text-primary me-1"></i> <strong>NPCI Real-Time Settlement:</strong> Transfers execute in 2-5 seconds with immediate bank SMS notification.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary fw-bold py-2 px-4">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Confirm UPI Transfer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

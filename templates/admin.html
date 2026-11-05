@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Panel - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="bg-white border-bottom py-4 mb-4">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <span class="badge bg-danger text-uppercase px-3 py-2 rounded-pill fw-bold mb-1">
+                    <i class="fa-solid fa-shield-halved me-1"></i> Governance & Moderation
+                </span>
+                <h1 class="h3 fw-bold mb-1">Marketplace Administrator Dashboard</h1>
+                <p class="text-secondary small mb-0">Platform performance KPIs, user account control, service moderation, and engagement oversight.</p>
+            </div>
+            <div class="small text-muted">
+                Admin: <strong>{{ session.get('full_name') }}</strong> ({{ session.get('email') }})
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Platform KPI Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-6">
+            <div class="card custom-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted d-block">Registered Users</small>
+                        <span class="fs-3 fw-bold text-dark">{{ stats.total_users }}</span>
+                        <div class="small text-muted mt-1">{{ stats.total_clients }} Clients &bull; {{ stats.total_freelancers }} Freelancers</div>
+                    </div>
+                    <div class="bg-primary-subtle text-primary p-3 rounded-circle">
+                        <i class="fa-solid fa-users fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="card custom-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted d-block">Published Services</small>
+                        <span class="fs-3 fw-bold text-info">{{ stats.total_services }}</span>
+                        <div class="small text-muted mt-1">Fixed-price packages</div>
+                    </div>
+                    <div class="bg-info-subtle text-info p-3 rounded-circle">
+                        <i class="fa-solid fa-cubes fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="card custom-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted d-block">Consultations</small>
+                        <span class="fs-3 fw-bold text-purple" style="color: #7e22ce;">{{ stats.total_consultations }}</span>
+                        <div class="small text-muted mt-1">Model A inquiries</div>
+                    </div>
+                    <div class="bg-purple-subtle text-purple p-3 rounded-circle" style="background-color: #f3e8ff; color: #7e22ce;">
+                        <i class="fa-solid fa-comments fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="card custom-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted d-block">Total Project Engagements</small>
+                        <span class="fs-3 fw-bold text-success">{{ stats.total_bookings }}</span>
+                        <div class="small text-muted mt-1">₹{{ "{:,.0f}".format(stats.total_gmv) }} Total Volume</div>
+                    </div>
+                    <div class="bg-success-subtle text-success p-3 rounded-circle">
+                        <i class="fa-solid fa-circle-check fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Management Tables (Tabbed) -->
+    <ul class="nav nav-tabs nav-fill mb-4 bg-white p-2 rounded-3 border" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="users-tab" data-bs-toggle="tab" data-bs-target="#usersTab" type="button" role="tab">
+                <i class="fa-solid fa-users-gear me-1"></i> User Management ({{ users|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="services-tab" data-bs-toggle="tab" data-bs-target="#servicesTab" type="button" role="tab">
+                <i class="fa-solid fa-cubes me-1"></i> Service Listings Moderation ({{ services|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookingsTab" type="button" role="tab">
+                <i class="fa-solid fa-briefcase me-1"></i> All Bookings & Engagements ({{ bookings|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="escrow-tab" data-bs-toggle="tab" data-bs-target="#escrowTab" type="button" role="tab">
+                <i class="fa-solid fa-shield-halved me-1 text-success"></i> Escrow Trust & UPI Ledger ({{ escrow_transactions|length }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="adminTabsContent">
+        <!-- 1. Users Tab -->
+        <div class="tab-pane fade show active" id="usersTab" role="tabpanel">
+            <div class="card custom-card p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small">
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Account Status</th>
+                                <th>Joined</th>
+                                <th class="text-end">Moderation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td class="fw-bold small">#{{ u.user_id }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="{{ u.avatar_url or 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }}" 
+                                             class="rounded-circle" width="32" height="32" style="object-fit: cover;">
+                                        <span class="fw-semibold text-dark">{{ u.full_name }}</span>
+                                    </div>
+                                </td>
+                                <td class="small">{{ u.email }}</td>
+                                <td>
+                                    <span class="badge {% if u.role == 'admin' %}bg-danger{% elif u.role == 'client' %}bg-primary{% else %}bg-info{% endif %} text-uppercase">
+                                        {{ u.role }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if u.status == 'active' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ u.status }}
+                                    </span>
+                                </td>
+                                <td class="small text-muted">{{ u.created_at[:10] }}</td>
+                                <td class="text-end">
+                                    {% if u.role != 'admin' %}
+                                        <form method="POST" action="{{ url_for('admin_toggle_user', user_id=u.user_id) }}" class="d-inline">
+                                            {% if u.status == 'active' %}
+                                                <input type="hidden" name="status" value="suspended">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Suspend user {{ u.full_name }}?');">
+                                                    Suspend
+                                                </button>
+                                            {% else %}
+                                                <input type="hidden" name="status" value="active">
+                                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                                    Reactivate
+                                                </button>
+                                            {% endif %}
+                                        </form>
+                                    {% else %}
+                                        <span class="small text-muted">Admin Account</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Services Moderation Tab -->
+        <div class="tab-pane fade" id="servicesTab" role="tabpanel">
+            <div class="card custom-card p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small">
+                            <tr>
+                                <th>ID</th>
+                                <th>Service Title</th>
+                                <th>Freelancer</th>
+                                <th>Category</th>
+                                <th>Fixed Price</th>
+                                <th>Status</th>
+                                <th class="text-end">Moderation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in services %}
+                            <tr>
+                                <td class="fw-bold small">#{{ s.service_id }}</td>
+                                <td class="fw-semibold text-dark">{{ s.title }}</td>
+                                <td class="small">{{ s.freelancer_name }}</td>
+                                <td><span class="badge bg-secondary-subtle text-secondary">{{ s.category }}</span></td>
+                                <td class="fw-bold text-dark">₹{{ "{:,.0f}".format(s.price) }}</td>
+                                <td><span class="status-badge status-badge-{{ s.status|lower }}">{{ s.status }}</span></td>
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('admin_toggle_service', service_id=s.service_id) }}" class="d-inline">
+                                        {% if s.status == 'Active' %}
+                                            <input type="hidden" name="status" value="Inactive">
+                                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                                Deactivate
+                                            </button>
+                                        {% else %}
+                                            <input type="hidden" name="status" value="Active">
+                                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                                Activate
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Bookings Tab -->
+        <div class="tab-pane fade" id="bookingsTab" role="tabpanel">
+            <div class="card custom-card p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small">
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Project Details</th>
+                                <th>Client</th>
+                                <th>Freelancer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th class="text-end">Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in bookings %}
+                            <tr>
+                                <td class="fw-bold small">#{{ b.booking_id }}</td>
+                                <td>
+                                    <span class="badge {% if b.booking_type == 'Fixed' %}bg-info{% else %}bg-primary{% endif %}">
+                                        {{ b.booking_type }}
+                                    </span>
+                                </td>
+                                <td class="small text-dark fw-semibold">
+                                    {% if b.booking_type == 'Fixed' %}
+                                        {{ b.service_title }}
+                                    {% else %}
+                                        Custom: {{ b.request_title }}
+                                    {% endif %}
+                                </td>
+                                <td class="small">{{ b.client_name }}</td>
+                                <td class="small">{{ b.freelancer_name }}</td>
+                                <td class="fw-bold text-dark">₹{{ "{:,.0f}".format(b.agreed_amount) }}</td>
+                                <td><span class="status-badge status-badge-{{ b.status|lower|replace(' ', '-') }}">{{ b.status }}</span></td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('view_booking', booking_id=b.booking_id) }}" class="btn btn-outline-secondary btn-sm">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Escrow Trust & Financial Ledger Tab -->
+        <div class="tab-pane fade" id="escrowTab" role="tabpanel">
+            <div class="card custom-card p-4">
+                <!-- Platform Escrow Summary Badges -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <span class="small text-muted d-block">Locked in Escrow Trust</span>
+                            <strong class="fs-4 text-warning">₹{{ "{:,.2f}".format(escrow_stats.locked_escrow) }}</strong>
+                            <div class="small text-muted mt-1">Active client deposits awaiting completion</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <span class="small text-muted d-block">Total Payouts Released</span>
+                            <strong class="fs-4 text-success">₹{{ "{:,.2f}".format(escrow_stats.total_released) }}</strong>
+                            <div class="small text-muted mt-1">Cleared revenue paid to freelancers</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <span class="small text-muted d-block">Total Escrow Refunds</span>
+                            <strong class="fs-4 text-danger">₹{{ "{:,.2f}".format(escrow_stats.total_refunded) }}</strong>
+                            <div class="small text-muted mt-1">Refunded to clients via dispute mediation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Platform Transactions & Escrow Mediation</h5>
+                    <span class="small text-muted">Administrative override and dispute settlement tools</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small">
+                            <tr>
+                                <th>Txn ID</th>
+                                <th>Order</th>
+                                <th>Client (Payer)</th>
+                                <th>Freelancer (Payee)</th>
+                                <th>Amount</th>
+                                <th>Bank UTR</th>
+                                <th>Escrow Status</th>
+                                <th>Date</th>
+                                <th class="text-end">Admin Mediation</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            {% for et in escrow_transactions %}
+                            <tr>
+                                <td class="fw-bold">#{{ et.transaction_id }}</td>
+                                <td>
+                                    {% if et.booking_id %}
+                                        <a href="{{ url_for('view_booking', booking_id=et.booking_id) }}" class="text-decoration-none fw-bold">
+                                            Order #{{ et.booking_id }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Direct Payout</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ et.client_name }}</td>
+                                <td>{{ et.freelancer_name }}</td>
+                                <td class="fw-bold text-dark">₹{{ "{:,.2f}".format(et.amount) }}</td>
+                                <td><span class="font-monospace text-dark">{{ et.upi_ref_no or 'PENDING-UTR' }}</span></td>
+                                <td>
+                                    <span class="badge {% if et.status == 'Released' %}bg-success-subtle text-success border border-success-subtle{% elif et.status == 'Escrow_Locked' %}bg-warning-subtle text-dark border border-warning-subtle{% elif et.status == 'Refunded' %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %}">
+                                        {{ et.status }}
+                                    </span>
+                                </td>
+                                <td class="text-muted">{{ et.completed_at or et.created_at }}</td>
+                                <td class="text-end text-nowrap">
+                                    <a href="{{ url_for('view_payment_receipt', transaction_id=et.transaction_id) }}" target="_blank" class="btn btn-sm btn-outline-secondary py-1 px-2 me-1">
+                                        <i class="fa-solid fa-file-invoice"></i>
+                                    </a>
+                                    {% if et.status == 'Escrow_Locked' and et.booking_id %}
+                                        <form method="POST" action="{{ url_for('admin_force_release_escrow', booking_id=et.booking_id) }}" class="d-inline" onsubmit="return confirm('ADMIN OVERRIDE: Force release escrow to freelancer?');">
+                                            <button type="submit" class="btn btn-sm btn-success py-1 px-2 me-1" title="Force Release to Freelancer">
+                                                <i class="fa-solid fa-check"></i> Release
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('admin_refund_escrow', booking_id=et.booking_id) }}" class="d-inline" onsubmit="return confirm('ADMIN OVERRIDE: Refund escrow back to client?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" title="Refund to Client">
+                                                <i class="fa-solid fa-rotate-left"></i> Refund
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

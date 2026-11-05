@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ service.title }} - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('browse_services') }}">Fixed Services</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ service.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Service Main Content -->
+        <div class="col-lg-8">
+            <div class="card custom-card p-4 mb-4">
+                <span class="badge bg-info-subtle text-info fw-bold mb-2 align-self-start">{{ service.category }}</span>
+                <h2 class="fw-bold mb-3">{{ service.title }}</h2>
+
+                <!-- Service Image -->
+                {% if service.image_url %}
+                    <img src="{{ service.image_url }}" alt="{{ service.title }}" class="img-fluid rounded-4 mb-4 w-100" style="max-height: 400px; object-fit: cover;">
+                {% endif %}
+
+                <h5 class="fw-bold mb-2">Service Overview</h5>
+                <p class="text-secondary mb-4" style="line-height: 1.7; white-space: pre-line;">
+                    {{ service.description }}
+                </p>
+
+                <!-- What's Included / Deliverables -->
+                <div class="p-4 bg-light rounded-4 border mb-4">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-list-check text-primary me-2"></i> Deliverables Checklist</h5>
+                    <div class="row g-2">
+                        {% for item in service.deliverables.split(',') %}
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-2 small">
+                                <i class="fa-solid fa-circle-check text-success"></i>
+                                <span class="fw-medium text-dark">{{ item.strip() }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="row g-3 text-center">
+                    <div class="col-4">
+                        <div class="p-3 border rounded-3 bg-white">
+                            <small class="text-muted d-block">Delivery Time</small>
+                            <span class="fw-bold fs-5 text-dark"><i class="fa-regular fa-clock text-primary me-1"></i> {{ service.delivery_days }} Days</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 border rounded-3 bg-white">
+                            <small class="text-muted d-block">Revisions Included</small>
+                            <span class="fw-bold fs-5 text-dark"><i class="fa-solid fa-arrows-rotate text-info me-1"></i> {{ service.revisions }}</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 border rounded-3 bg-white">
+                            <small class="text-muted d-block">Fixed Price</small>
+                            <span class="fw-bold fs-5 text-success">₹{{ "{:,.0f}".format(service.price) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Freelancer Info Card -->
+            <div class="card custom-card p-4">
+                <h5 class="fw-bold mb-3">About the Service Provider</h5>
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img src="{{ service.avatar_url or 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150' }}" 
+                         alt="{{ service.freelancer_name }}" class="avatar-img">
+                    <div>
+                        <h5 class="mb-0 fw-bold">
+                            <a href="{{ url_for('freelancer_profile', freelancer_id=service.freelancer_id) }}" class="text-dark text-decoration-none">
+                                {{ service.freelancer_name }}
+                            </a>
+                        </h5>
+                        <p class="text-muted small mb-1">{{ service.headline }}</p>
+                        <div class="d-flex align-items-center gap-2 small">
+                            <span class="rating-stars"><i class="fa-solid fa-star"></i></span>
+                            <span class="fw-bold">{{ "%.1f"|format(service.rating_avg) }}</span>
+                            <span class="text-muted">({{ service.rating_count }} reviews)</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-secondary small mb-3">{{ service.bio }}</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('freelancer_profile', freelancer_id=service.freelancer_id) }}" class="btn btn-outline-primary btn-sm">
+                        View Full Profile
+                    </a>
+                    <a href="{{ url_for('request_consultation', freelancer_id=service.freelancer_id) }}" class="btn btn-outline-secondary btn-sm">
+                        Discuss Custom Project
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Booking Action Panel -->
+        <div class="col-lg-4">
+            <div class="card custom-card p-4 sticky-top" style="top: 85px;">
+                <div class="badge bg-info-subtle text-info fw-bold mb-2">Model B &bull; Fixed-Price Package</div>
+                <div class="d-flex justify-content-between align-items-baseline mb-3">
+                    <span class="text-muted">Total Price</span>
+                    <span class="display-6 fw-extrabold text-primary">₹{{ "{:,.0f}".format(service.price) }}</span>
+                </div>
+
+                <ul class="list-unstyled small text-secondary mb-4">
+                    <li class="mb-2"><i class="fa-regular fa-calendar-check text-success me-2"></i> <strong>{{ service.delivery_days }} Days</strong> Guaranteed Delivery</li>
+                    <li class="mb-2"><i class="fa-solid fa-repeat text-info me-2"></i> <strong>{{ service.revisions }} Revisions</strong> Included</li>
+                    <li class="mb-2"><i class="fa-solid fa-shield-check text-primary me-2"></i> Quality Assurance & Deliverable Proof</li>
+                    <li class="mb-2"><i class="fa-solid fa-handshake text-secondary me-2"></i> Direct communication with freelancer</li>
+                </ul>
+
+                <a href="{{ url_for('book_service', service_id=service.service_id) }}" class="btn btn-service btn-lg w-100 py-3 mb-3">
+                    <i class="fa-solid fa-bag-shopping me-2"></i> Book This Service
+                </a>
+
+                <div class="p-3 bg-light rounded-3 text-muted small border">
+                    <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-lock text-success me-1"></i> Transparent Booking</div>
+                    Submit your specific requirements and preferred start date on the next step. Work commences as soon as the freelancer accepts.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

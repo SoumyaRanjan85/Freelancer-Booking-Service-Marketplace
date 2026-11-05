@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card custom-card p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <span class="brand-badge fs-4 mb-2 d-inline-block p-3 rounded-4" style="background: linear-gradient(135deg, #4f46e5, #0ea5e9); color: #fff;">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </span>
+                    <h2 class="fw-bold">Join FreelanceConnect</h2>
+                    <p class="text-muted small">Choose your path to start hiring or providing verified services</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('register') }}">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">I want to join as:</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="role" id="role_client" value="client" checked>
+                                <label class="btn btn-outline-primary w-100 py-3 text-start d-flex flex-column" for="role_client">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="fw-bold"><i class="fa-solid fa-briefcase me-1"></i> Client</span>
+                                        <i class="fa-solid fa-circle-check"></i>
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.75rem;">I want to hire talent & book services</small>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="role" id="role_freelancer" value="freelancer">
+                                <label class="btn btn-outline-primary w-100 py-3 text-start d-flex flex-column" for="role_freelancer">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="fw-bold"><i class="fa-solid fa-user-tie me-1"></i> Freelancer</span>
+                                        <i class="fa-solid fa-circle-check"></i>
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.75rem;">I want to offer services & consult</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label fw-semibold small">Full Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-regular fa-user text-muted"></i></span>
+                            <input type="text" class="form-control border-start-0" id="full_name" name="full_name" placeholder="John Doe" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold small">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-regular fa-envelope text-muted"></i></span>
+                            <input type="email" class="form-control border-start-0" id="email" name="email" placeholder="name@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label fw-semibold small">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="At least 6 characters" minlength="6" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirm_password" class="form-label fw-semibold small">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Re-type password" minlength="6" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                        <i class="fa-solid fa-check me-2"></i> Complete Registration
+                    </button>
+                </form>
+
+                <div class="text-center">
+                    <span class="small text-muted">Already registered? <a href="{{ url_for('login') }}" class="fw-bold">Sign in here</a></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

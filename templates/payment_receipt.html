@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Tax Invoice & UPI Receipt #{{ txn.transaction_id }} - FreelanceConnect{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    /* Hide navigation, buttons, and footer on paper / PDF */
+    .navbar, footer, .breadcrumb, .no-print, .btn, .alert {
+        display: none !important;
+    }
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+    .invoice-card {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}
+.invoice-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 5rem;
+    font-weight: 900;
+    color: rgba(16, 185, 129, 0.04);
+    letter-spacing: 10px;
+    pointer-events: none;
+    z-index: 0;
+    user-select: none;
+}
+.escrow-stamp {
+    border: 3px double #10b981;
+    border-radius: 12px;
+    padding: 8px 16px;
+    display: inline-block;
+    color: #10b981;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    transform: rotate(-3deg);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3 no-print">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('view_booking', booking_id=booking.booking_id) }}">Order #{{ booking.booking_id }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tax Invoice & Receipt</li>
+        </ol>
+    </nav>
+
+    <!-- Top Action Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <a href="{{ url_for('view_booking', booking_id=booking.booking_id) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Order Tracking
+        </a>
+        <div class="d-flex gap-2">
+            <button type="button" onclick="window.print();" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-print me-1"></i> Print / Save as PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Official Invoice Document -->
+    <div class="card custom-card p-4 p-md-5 invoice-card position-relative bg-white">
+        <div class="invoice-watermark">ESCROW PROTECTED</div>
+
+        <!-- Invoice Header -->
+        <div class="row justify-content-between align-items-start border-bottom pb-4 mb-4 position-relative" style="z-index: 1;">
+            <div class="col-sm-7">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="brand-badge bg-primary text-white p-2 rounded-3"><i class="fa-solid fa-handshake-angle fs-4"></i></span>
+                    <span class="fs-3 fw-extrabold text-dark">Freelance<span class="text-primary">Connect</span></span>
+                </div>
+                <div class="small text-muted" style="line-height: 1.5;">
+                    FreelanceConnect Digital Marketplace Pvt. Ltd.<br>
+                    Escrow Trust & Settlement Account #0004928192<br>
+                    ICICI Bank Tower, Bandra Kurla Complex, Mumbai, India<br>
+                    <strong>GSTIN / Tax ID:</strong> 27AABCF1234F1Z6 &bull; support@freelanceconnect.com
+                </div>
+            </div>
+            <div class="col-sm-5 text-sm-end mt-3 mt-sm-0">
+                <div class="escrow-stamp mb-2">
+                    <i class="fa-solid fa-shield-check me-1"></i>
+                    {% if txn.status == 'Released' %}
+                        PAYMENT RELEASED
+                    {% elif txn.status == 'Escrow_Locked' %}
+                        ESCROW SECURED
+                    {% else %}
+                        {{ txn.status|upper }}
+                    {% endif %}
+                </div>
+                <div class="text-muted small">INVOICE & UPI RECEIPT</div>
+                <div class="h4 fw-extrabold text-dark mb-0 font-monospace">INV-{{ "{:04d}".format(txn.transaction_id) }}-{{ txn.created_at[:4] }}</div>
+                <div class="small text-muted">Date: <strong>{{ txn.completed_at or txn.created_at }}</strong></div>
+            </div>
+        </div>
+
+        <!-- Parties Information -->
+        <div class="row g-4 mb-4 position-relative" style="z-index: 1;">
+            <div class="col-sm-6">
+                <div class="p-3 bg-light rounded-3 border">
+                    <span class="badge bg-secondary text-uppercase mb-2">Billed To (Client)</span>
+                    <h6 class="fw-bold text-dark mb-1">{{ client.full_name }}</h6>
+                    <div class="small text-muted">{{ client.email }}</div>
+                    <div class="small text-muted mt-1">Payment UPI VPA: <strong class="text-dark">{{ txn.payer_upi_id or 'client@upi' }}</strong></div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="p-3 bg-light rounded-3 border">
+                    <span class="badge bg-primary text-uppercase mb-2">Service Provider (Freelancer)</span>
+                    <h6 class="fw-bold text-dark mb-1">{{ freelancer.full_name }}</h6>
+                    <div class="small text-muted">{{ freelancer.email }}</div>
+                    <div class="small text-muted mt-1">Beneficiary Payout VPA: <strong class="text-dark">{{ freelancer_upi or 'Linked UPI Account' }}</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Settlement & UTR Details -->
+        <div class="p-3 bg-light rounded-3 border mb-4 position-relative" style="z-index: 1;">
+            <div class="row g-3 small">
+                <div class="col-md-3 col-6">
+                    <span class="text-muted d-block">Transaction Type</span>
+                    <strong class="text-dark">{{ txn.payment_type|replace('_', ' ') }}</strong>
+                </div>
+                <div class="col-md-3 col-6">
+                    <span class="text-muted d-block">Payment Rail</span>
+                    <strong class="text-primary"><i class="fa-solid fa-bolt me-1"></i> NPCI UPI 2.0 (Mobile App)</strong>
+                </div>
+                <div class="col-md-3 col-6">
+                    <span class="text-muted d-block">Bank Reference No. (UTR)</span>
+                    <strong class="text-dark font-monospace">{{ txn.upi_ref_no }}</strong>
+                </div>
+                <div class="col-md-3 col-6">
+                    <span class="text-muted d-block">Escrow Trustee VPA</span>
+                    <strong class="text-dark">{{ txn.upi_vpa }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Itemized Billing Table -->
+        <div class="table-responsive mb-4 position-relative" style="z-index: 1;">
+            <table class="table table-bordered align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Project / Service Description</th>
+                        <th>Hiring Model</th>
+                        <th class="text-center">Target Days</th>
+                        <th class="text-end">Amount (INR)</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    <tr>
+                        <td class="fw-bold">1</td>
+                        <td>
+                            <strong class="text-dark d-block">
+                                {% if booking.booking_type == 'Fixed' %}
+                                    {{ booking.service_title }}
+                                {% else %}
+                                    Custom Project: {{ booking.request_title }}
+                                {% endif %}
+                            </strong>
+                            <span class="text-secondary" style="font-size: 0.78rem;">Order Tracking Reference #{{ booking.booking_id }}</span>
+                        </td>
+                        <td>
+                            <span class="badge {% if booking.booking_type == 'Fixed' %}bg-info{% else %}bg-primary{% endif %}">
+                                Model {{ 'B (Fixed)' if booking.booking_type == 'Fixed' else 'A (Consultation)' }}
+                            </span>
+                        </td>
+                        <td class="text-center">{{ booking.delivery_date }}</td>
+                        <td class="text-end fw-bold">₹{{ "{:,.2f}".format(txn.amount) }}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-end fw-semibold">Subtotal</td>
+                        <td class="text-end fw-bold">₹{{ "{:,.2f}".format(txn.amount) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-end fw-semibold">Platform Escrow Fee (0% Promotional)</td>
+                        <td class="text-end text-success fw-bold">₹0.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-end fw-semibold">Goods & Services Tax (GST 0% Export/SEZ)</td>
+                        <td class="text-end fw-bold">₹0.00</td>
+                    </tr>
+                    <tr class="table-light">
+                        <td colspan="4" class="text-end fs-5 fw-extrabold text-dark">Total Paid via Phone UPI</td>
+                        <td class="text-end fs-5 fw-extrabold text-primary">₹{{ "{:,.2f}".format(txn.amount) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Footer / Legal Compliance Section -->
+        <div class="row align-items-center justify-content-between pt-3 border-top position-relative" style="z-index: 1;">
+            <div class="col-sm-8 small text-muted">
+                <p class="mb-1"><strong>Terms & Escrow Regulations:</strong></p>
+                <p class="mb-0" style="font-size: 0.75rem;">
+                    This is a computer-generated tax invoice and UPI payment receipt issued pursuant to FreelanceConnect Escrow Guidelines. All client payments are maintained in an escrow settlement trust until deliverable sign-off. Questions regarding this settlement can be directed to support@freelanceconnect.com quoting UTR #{{ txn.upi_ref_no }}.
+                </p>
+            </div>
+            <div class="col-sm-4 text-sm-end mt-3 mt-sm-0">
+                <div class="d-inline-block text-center p-2 bg-light rounded-3 border">
+                    <!-- Invoice Verification QR -->
+                    <div style="width: 80px; height: 80px;" class="mx-auto d-flex align-items-center justify-content-center">
+                        {{ receipt_qr_svg|safe }}
+                    </div>
+                    <div class="text-muted" style="font-size: 0.65rem;">Scan to Verify</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

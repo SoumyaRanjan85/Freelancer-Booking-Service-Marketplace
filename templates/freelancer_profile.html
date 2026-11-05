@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ freelancer.full_name }} - Profile - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('explore_freelancers') }}">Freelancers</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ freelancer.full_name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Main Profile Info -->
+        <div class="col-lg-8">
+            <!-- Profile Header Card -->
+            <div class="card custom-card p-4 mb-4">
+                <div class="d-flex flex-wrap align-items-center gap-4">
+                    <img src="{{ freelancer.avatar_url or 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150' }}" 
+                         alt="{{ freelancer.full_name }}" class="avatar-lg">
+                    <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                            <div>
+                                <h2 class="fw-bold mb-1">{{ freelancer.full_name }}</h2>
+                                <p class="text-primary fw-semibold mb-1">{{ freelancer.headline }}</p>
+                            </div>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+                                <i class="fa-solid fa-circle text-success me-1" style="font-size: 0.6rem;"></i> {{ freelancer.availability }}
+                            </span>
+                        </div>
+
+                        <div class="d-flex flex-wrap align-items-center gap-3 mt-2 text-muted small">
+                            <span class="badge bg-light text-dark border"><i class="fa-solid fa-briefcase me-1"></i> {{ freelancer.category }}</span>
+                            <span><i class="fa-solid fa-award me-1 text-primary"></i> <strong>{{ freelancer.experience }}+</strong> Years Experience</span>
+                            <span>
+                                <span class="rating-stars"><i class="fa-solid fa-star"></i></span>
+                                <strong class="text-dark">{{ "%.1f"|format(freelancer.rating_avg) }}</strong> ({{ freelancer.rating_count }} reviews)
+                            </span>
+                            {% if freelancer.portfolio_url %}
+                                <a href="{{ freelancer.portfolio_url }}" target="_blank" class="text-primary text-decoration-none">
+                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Portfolio
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Section -->
+            <div class="card custom-card p-4 mb-4">
+                <h4 class="fw-bold mb-3"><i class="fa-regular fa-user text-primary me-2"></i> About Me</h4>
+                <p class="text-secondary mb-4" style="line-height: 1.7;">
+                    {{ freelancer.bio }}
+                </p>
+
+                <h5 class="fw-bold mb-2">Technical Skills & Expertise</h5>
+                <div class="d-flex flex-wrap gap-1">
+                    {% for skill in freelancer.skills.split(',') %}
+                        <span class="skill-badge fs-6 py-1 px-3">{{ skill.strip() }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Published Services by this Freelancer -->
+            <div class="card custom-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0">
+                        <i class="fa-solid fa-cubes text-info me-2"></i> Fixed-Price Services
+                    </h4>
+                    <span class="badge bg-info-subtle text-info">{{ services|length }} Available</span>
+                </div>
+
+                {% if services %}
+                    <div class="row g-3">
+                        {% for s in services %}
+                        <div class="col-md-6">
+                            <div class="card border rounded-3 h-100 p-3 d-flex flex-column bg-light-subtle">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-info-subtle text-info small">{{ s.category }}</span>
+                                    <span class="small text-muted"><i class="fa-regular fa-clock me-1"></i> {{ s.delivery_days }}d</span>
+                                </div>
+                                <h6 class="fw-bold mb-2">
+                                    <a href="{{ url_for('service_details', service_id=s.service_id) }}" class="text-dark text-decoration-none">
+                                        {{ s.title }}
+                                    </a>
+                                </h6>
+                                <p class="small text-muted mb-3 text-truncate-2">
+                                    {{ s.description }}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+                                    <span class="fw-bold text-primary fs-5">₹{{ "{:,.0f}".format(s.price) }}</span>
+                                    <a href="{{ url_for('book_service', service_id=s.service_id) }}" class="btn btn-service btn-sm">
+                                        Book Now
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">This freelancer has not published predefined packages yet. You can request a custom consultation below.</p>
+                {% endif %}
+            </div>
+
+            <!-- Verified Client Reviews -->
+            <div class="card custom-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0"><i class="fa-regular fa-star text-warning me-2"></i> Client Reviews</h4>
+                    <span class="badge bg-light text-dark border">
+                        <i class="fa-solid fa-star text-warning me-1"></i> {{ "%.1f"|format(freelancer.rating_avg) }} Average Rating
+                    </span>
+                </div>
+
+                {% if reviews %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for r in reviews %}
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ r.client_avatar or 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }}" 
+                                         class="rounded-circle" width="36" height="36" style="object-fit: cover;">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">{{ r.client_name }}</h6>
+                                        <small class="text-muted">{{ r.created_at[:10] }}</small>
+                                    </div>
+                                </div>
+                                <div>
+                                    {% for i in range(r.rating) %}
+                                        <i class="fa-solid fa-star text-warning small"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p class="text-secondary small mb-0">{{ r.comment }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="fa-regular fa-message fs-2 mb-2 d-block"></i>
+                        No client reviews yet. Be the first to collaborate with {{ freelancer.full_name }}!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sticky Action Sidebar -->
+        <div class="col-lg-4">
+            <div class="card custom-card p-4 sticky-top" style="top: 85px;">
+                <div class="d-flex justify-content-between align-items-baseline mb-3">
+                    <span class="text-muted small">Standard Hourly Rate</span>
+                    <span class="fs-3 fw-bold text-dark">₹{{ "{:,.0f}".format(freelancer.hourly_rate) }}<small class="fs-6 text-muted">/hr</small></span>
+                </div>
+
+                <!-- Two Ways to Hire Callout -->
+                <div class="p-3 bg-primary-subtle rounded-3 mb-4 border border-primary-subtle">
+                    <h6 class="fw-bold text-primary mb-1"><i class="fa-solid fa-handshake me-1"></i> Two Ways to Hire</h6>
+                    <small class="text-secondary">Choose between a custom consultation project or an instant fixed package.</small>
+                </div>
+
+                <!-- Action 1: Consultation (Model A) -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-1">Option 1: Custom Project</h6>
+                    <p class="small text-muted mb-2">Discuss your specifications, negotiate budget, and finalize deliverables.</p>
+                    <a href="{{ url_for('request_consultation', freelancer_id=freelancer.user_id) }}" class="btn btn-consult w-100 py-2">
+                        <i class="fa-solid fa-comments me-2"></i> Request Consultation
+                    </a>
+                </div>
+
+                <div class="text-center position-relative my-3">
+                    <hr>
+                    <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 small text-muted fw-bold">OR</span>
+                </div>
+
+                <!-- Action 2: Fixed-Price Packages (Model B) -->
+                <div>
+                    <h6 class="fw-bold mb-1">Option 2: Predefined Package</h6>
+                    <p class="small text-muted mb-2">Book an existing service with predictable turnaround & deliverables.</p>
+                    {% if services %}
+                        <div class="d-grid gap-2">
+                            {% for s in services[:2] %}
+                                <a href="{{ url_for('book_service', service_id=s.service_id) }}" class="btn btn-outline-info btn-sm text-start d-flex justify-content-between align-items-center">
+                                    <span class="text-truncate me-2">{{ s.title }}</span>
+                                    <strong class="text-dark">₹{{ "{:,.0f}".format(s.price) }}</strong>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <button class="btn btn-light w-100 btn-sm text-muted" disabled>No Fixed Packages Listed</button>
+                    {% endif %}
+                </div>
+
+                <div class="border-top pt-3 mt-4 small text-muted">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="fa-solid fa-shield-check text-success"></i>
+                        <span>Zero upfront payment required for consultation</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-primary"></i>
+                        <span>Average response time: <strong>&lt; 2 hours</strong></span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

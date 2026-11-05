@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}Project Negotiation - Consultation #{{ consultation.consultation_id }} - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('consultation_details', consultation_id=consultation.consultation_id) }}">Consultation #{{ consultation.consultation_id }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Negotiation Workspace</li>
+        </ol>
+    </nav>
+
+    <!-- Header Banner -->
+    <div class="card custom-card p-4 mb-4 border-primary">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <span class="badge bg-primary text-uppercase px-3 py-2 rounded-pill fw-bold mb-1">
+                    <i class="fa-solid fa-scale-balanced me-1"></i> Model A &bull; Negotiation Workspace
+                </span>
+                <h2 class="fw-bold mb-1">{{ consultation.request_title }}</h2>
+                <div class="small text-secondary">
+                    Between <strong>{{ consultation.client_name }}</strong> (Client) and <strong>{{ consultation.freelancer_name }}</strong> (Freelancer)
+                </div>
+            </div>
+            <div>
+                <a href="{{ url_for('consultation_details', consultation_id=consultation.consultation_id) }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fa-solid fa-circle-info me-1"></i> Consultation Notes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Custom Engagement Banner (If agreement reached) -->
+    {% if custom_booking %}
+    <div class="card bg-success-subtle border-success p-4 mb-4 rounded-4 shadow-sm">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-success text-white p-3 rounded-circle fs-3">
+                    <i class="fa-solid fa-handshake"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-success mb-1">Agreement Reached & Custom Project Initiated!</h4>
+                    <p class="mb-0 text-dark small">
+                        Agreed Price: <strong>₹{{ "{:,.0f}".format(custom_booking.agreed_amount) }}</strong> &bull; 
+                        Delivery by: <strong>{{ custom_booking.delivery_date }}</strong> &bull; 
+                        Status: <span class="badge bg-success">{{ custom_booking.status }}</span>
+                    </p>
+                </div>
+            </div>
+            <div>
+                <a href="{{ url_for('view_booking', booking_id=custom_booking.booking_id) }}" class="btn btn-success fw-bold">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Track Active Project (#{{ custom_booking.booking_id }})
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Main Negotiation Area: Active Proposal & Counter-offer Form -->
+        <div class="col-lg-8">
+            <!-- Active / Latest Proposal Card -->
+            {% if latest_proposal %}
+                <div class="card custom-card p-4 mb-4 border-2 {% if latest_proposal.status == 'Accepted' %}border-success{% elif latest_proposal.status == 'Pending' %}border-primary{% else %}border-secondary{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-dark fs-6 px-3 py-2 rounded-pill">Version {{ latest_proposal.version }}</span>
+                            <span class="badge bg-light text-dark border">
+                                Proposed by: <strong>{{ latest_proposal.sender_name }}</strong>
+                            </span>
+                        </div>
+                        <span class="status-badge status-badge-{{ latest_proposal.status|lower }} fs-6">
+                            {{ latest_proposal.status }}
+                        </span>
+                    </div>
+
+                    <!-- Proposal Highlights -->
+                    <div class="row g-3 text-center my-3">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-muted d-block fw-semibold">Proposed Project Price</small>
+                                <span class="display-6 fw-extrabold text-primary">₹{{ "{:,.0f}".format(latest_proposal.proposed_amount) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-muted d-block fw-semibold">Proposed Turnaround Time</small>
+                                <span class="display-6 fw-extrabold text-dark">{{ latest_proposal.delivery_days }} <small class="fs-5 text-muted">Days</small></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">Detailed Scope of Work</h5>
+                    <div class="p-3 bg-light rounded-3 border text-secondary small mb-3" style="line-height: 1.7; white-space: pre-line;">
+                        {{ latest_proposal.scope }}
+                    </div>
+
+                    {% if latest_proposal.message %}
+                        <h6 class="fw-bold mb-1">Note from {{ latest_proposal.sender_name }}:</h6>
+                        <p class="text-muted small fst-italic mb-3">
+                            "{{ latest_proposal.message }}"
+                        </p>
+                    {% endif %}
+
+                    <!-- Action Controls (If status is Pending) -->
+                    {% if latest_proposal.status == 'Pending' %}
+                        {% if session.get('user_id') != latest_proposal.sender_id %}
+                            <!-- Current user is the recipient: Can Accept or Counter -->
+                            <div class="border-top pt-4 mt-3">
+                                <div class="d-flex flex-wrap gap-3">
+                                    <!-- Accept Action Form -->
+                                    <form method="POST" action="{{ url_for('accept_proposal', proposal_id=latest_proposal.proposal_id) }}" onsubmit="return confirm('Accept this proposal of ₹{{ '{:,.0f}'.format(latest_proposal.proposed_amount) }} and commence the custom project engagement?');">
+                                        <button type="submit" class="btn btn-success btn-lg px-4">
+                                            <i class="fa-solid fa-check me-2"></i> Accept Proposal & Finalize
+                                        </button>
+                                    </form>
+
+                                    <!-- Counter-offer Toggle -->
+                                    <button class="btn btn-outline-primary btn-lg" type="button" data-bs-toggle="collapse" data-bs-target="#counterOfferCollapse">
+                                        <i class="fa-solid fa-arrows-split-up-and-left me-2"></i> Make Counterproposal
+                                    </button>
+
+                                    <!-- Decline Button -->
+                                    <form method="POST" action="{{ url_for('reject_proposal', proposal_id=latest_proposal.proposal_id) }}" onsubmit="return confirm('Decline this proposal?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-lg">
+                                            Decline
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Counter-offer Form Collapse -->
+                                <div class="collapse mt-4" id="counterOfferCollapse">
+                                    <div class="card card-body bg-light border-primary p-4 rounded-4">
+                                        <h5 class="fw-bold text-primary mb-3">
+                                            <i class="fa-solid fa-pen-to-square me-2"></i> Submit Counterproposal (Version {{ latest_proposal.version + 1 }})
+                                        </h5>
+                                        <p class="small text-secondary mb-3">
+                                            Adjust the budget, delivery timeline, or scope. Submitting creates a new version record while preserving the previous negotiation steps.
+                                        </p>
+
+                                        <form method="POST" action="{{ url_for('submit_counterproposal', proposal_id=latest_proposal.proposal_id) }}">
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">Counter Budget (₹)</label>
+                                                    <input type="number" step="100" min="500" name="proposed_amount" class="form-control" value="{{ latest_proposal.proposed_amount }}" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">Proposed Delivery Days</label>
+                                                    <input type="number" min="1" max="180" name="delivery_days" class="form-control" value="{{ latest_proposal.delivery_days }}" required>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Revised Scope / Deliverables</label>
+                                                <textarea name="scope" rows="4" class="form-control" required>{{ latest_proposal.scope }}</textarea>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Rationale / Message for Other Party</label>
+                                                <textarea name="message" rows="2" class="form-control" placeholder="Explain your adjustments..."></textarea>
+                                            </div>
+
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#counterOfferCollapse">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fa-solid fa-paper-plane me-1"></i> Send Counter-Offer
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- Current user submitted the proposal: Waiting -->
+                            <div class="alert alert-info border-info mt-3 mb-0">
+                                <i class="fa-solid fa-hourglass-half me-2"></i>
+                                You submitted Proposal Version {{ latest_proposal.version }}. Awaiting response or counterproposal from 
+                                <strong>{{ consultation.client_name if session.get('user_id') == consultation.freelancer_id else consultation.freelancer_name }}</strong>.
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+            {% else %}
+                <!-- No proposal submitted yet -->
+                <div class="card custom-card p-5 text-center mb-4">
+                    <i class="fa-solid fa-file-contract text-primary fs-1 mb-3"></i>
+                    <h4 class="fw-bold">No Proposals Submitted Yet</h4>
+                    <p class="text-secondary small mb-4">
+                        {% if session.get('user_id') == consultation.freelancer_id %}
+                            Now that the consultation has concluded, create the initial project proposal detailing your pricing, deliverables, and estimated turnaround.
+                        {% else %}
+                            Waiting for the freelancer ({{ consultation.freelancer_name }}) to prepare and submit the initial formal proposal.
+                        {% endif %}
+                    </p>
+
+                    {% if session.get('user_id') == consultation.freelancer_id %}
+                        <div>
+                            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="collapse" data-bs-target="#initialProposalCollapse">
+                                <i class="fa-solid fa-plus me-2"></i> Create Initial Project Proposal
+                            </button>
+                        </div>
+
+                        <!-- Initial Proposal Form Collapse -->
+                        <div class="collapse text-start mt-4" id="initialProposalCollapse">
+                            <div class="card card-body bg-light border-primary p-4 rounded-4">
+                                <h5 class="fw-bold text-primary mb-3">Submit Initial Formal Proposal</h5>
+                                <form method="POST" action="{{ url_for('submit_initial_proposal', consultation_id=consultation.consultation_id) }}">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold">Proposed Project Amount (₹)</label>
+                                            <input type="number" step="100" min="500" name="proposed_amount" class="form-control" placeholder="15000" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold">Delivery Days</label>
+                                            <input type="number" min="1" max="180" name="delivery_days" class="form-control" placeholder="10" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Detailed Scope of Deliverables</label>
+                                        <textarea name="scope" rows="5" class="form-control" placeholder="Specify all deliverables, milestones, tech stack, and inclusions..." required></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Introductory Message / Notes</label>
+                                        <textarea name="message" rows="2" class="form-control" placeholder="Thank you for the consultation! Here is our agreed specification..."></textarea>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#initialProposalCollapse">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa-solid fa-paper-plane me-1"></i> Send Proposal
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Negotiation History Timeline -->
+            <div class="card custom-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-timeline text-primary me-2"></i> Complete Negotiation History
+                    </h5>
+                    <span class="badge bg-light text-dark border">{{ proposals|length }} Iteration(s)</span>
+                </div>
+
+                {% if proposals %}
+                    <div class="negotiation-timeline">
+                        {% for p in proposals %}
+                            <div class="negotiation-item">
+                                <div class="negotiation-dot {% if p.status == 'Accepted' %}accepted{% elif p.status == 'Superseded' %}superseded{% endif %}"></div>
+                                <div class="card p-3 border rounded-3 bg-white shadow-sm">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                        <div>
+                                            <span class="badge bg-dark me-2">Version {{ p.version }}</span>
+                                            <strong class="text-dark">{{ p.sender_name }}</strong>
+                                            <span class="text-muted small">({{ p.created_at }})</span>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold text-primary me-3">₹{{ "{:,.0f}".format(p.proposed_amount) }}</span>
+                                            <span class="badge bg-secondary-subtle text-secondary me-2">{{ p.delivery_days }} Days</span>
+                                            <span class="status-badge status-badge-{{ p.status|lower }}">{{ p.status }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="small text-secondary mb-1">
+                                        <strong>Scope:</strong> {{ p.scope }}
+                                    </div>
+
+                                    {% if p.message %}
+                                        <div class="small text-muted fst-italic">
+                                            "{{ p.message }}"
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">No proposal history available yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Negotiation Rules & Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="card custom-card p-4 sticky-top" style="top: 85px;">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-file-contract text-primary me-2"></i> Project Summary</h5>
+                
+                <div class="p-3 bg-light rounded-3 small mb-3 border">
+                    <div class="text-muted mb-1">Consultation Title:</div>
+                    <div class="fw-bold text-dark mb-2">{{ consultation.request_title }}</div>
+                    <div class="text-muted mb-1">Initial Client Description:</div>
+                    <div class="text-secondary mb-0 text-truncate-3">{{ consultation.project_description }}</div>
+                </div>
+
+                <h6 class="fw-bold mb-2">Negotiation Rules</h6>
+                <ul class="list-unstyled small text-secondary mb-4">
+                    <li class="mb-2"><i class="fa-solid fa-lock text-primary me-2"></i> <strong>Audit Trail:</strong> Past proposals are never erased or modified.</li>
+                    <li class="mb-2"><i class="fa-solid fa-handshake text-success me-2"></i> <strong>Mutual Agreement:</strong> An engagement is created solely upon explicit acceptance.</li>
+                    <li class="mb-2"><i class="fa-solid fa-ban text-danger me-2"></i> <strong>No Underbidding:</strong> Pure direct negotiation without public bidding wars.</li>
+                </ul>
+
+                {% if custom_booking %}
+                    <div class="alert alert-success border-success mb-0 small">
+                        <strong>Project Engagement Active!</strong> Work is underway under Booking ID #{{ custom_booking.booking_id }}.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

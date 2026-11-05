@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if service %}Book Service - {{ service.title }}{% else %}Order Tracking #{{ booking.booking_id }}{% endif %} - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            {% if service %}
+                <li class="breadcrumb-item"><a href="{{ url_for('browse_services') }}">Services</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Book Package</li>
+            {% else %}
+                <li class="breadcrumb-item active" aria-current="page">Order #{{ booking.booking_id }}</li>
+            {% endif %}
+        </ol>
+    </nav>
+
+    {% if service %}
+        <!-- Fixed-Price Booking Checkout Form -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card custom-card p-4 p-md-5">
+                    <span class="badge bg-info-subtle text-info fw-bold mb-2 align-self-start">Model B &bull; Fixed-Price Service Checkout</span>
+                    <h2 class="fw-bold mb-1">Book: {{ service.title }}</h2>
+                    <p class="text-secondary small mb-4">Provided by <strong>{{ service.freelancer_name }}</strong></p>
+
+                    <!-- Order Summary Box -->
+                    <div class="p-3 bg-light rounded-4 border mb-4">
+                        <div class="row align-items-center g-3">
+                            <div class="col-sm-7">
+                                <div class="fw-bold text-dark fs-5 mb-1">Service Total</div>
+                                <div class="small text-muted">
+                                    <i class="fa-regular fa-calendar-check me-1"></i> Delivery in <strong>{{ service.delivery_days }} days</strong> &bull; 
+                                    <i class="fa-solid fa-repeat me-1"></i> <strong>{{ service.revisions }} revisions</strong>
+                                </div>
+                            </div>
+                            <div class="col-sm-5 text-sm-end">
+                                <span class="display-6 fw-extrabold text-primary">₹{{ "{:,.0f}".format(service.price) }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('book_service', service_id=service.service_id) }}">
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label fw-semibold small">Preferred Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="requirements" class="form-label fw-semibold small">Your Project Specifications & Instructions</label>
+                            <textarea class="form-control" id="requirements" name="requirements" rows="5" 
+                                      placeholder="Provide all background, assets, color preferences, links, or specific requirements needed for this service..." required></textarea>
+                            <div class="form-text small">The freelancer will review these instructions upon accepting your booking.</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{{ url_for('service_details', service_id=service.service_id) }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-service py-2 px-4">
+                                <i class="fa-solid fa-check me-2"></i> Confirm & Submit Booking
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Unified Project & Booking Tracking View (Model A or Model B) -->
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <!-- Status Tracker Card -->
+                <div class="card custom-card p-4 mb-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge {% if booking.booking_type == 'Fixed' %}bg-info{% else %}bg-primary{% endif %} px-3 py-1">
+                                    {{ booking.booking_type }} Project
+                                </span>
+                                <span class="text-muted small">Order #{{ booking.booking_id }}</span>
+                            </div>
+                            <h3 class="fw-bold mb-0">
+                                {% if booking.booking_type == 'Fixed' %}
+                                    {{ booking.service_title }}
+                                {% else %}
+                                    Custom Project: {{ booking.request_title }}
+                                {% endif %}
+                            </h3>
+                        </div>
+                        <span class="status-badge status-badge-{{ booking.status|lower|replace(' ', '-') }} fs-6">
+                            {{ booking.status }}
+                        </span>
+                    </div>
+
+                    <!-- 5-Stage Visual Progress Bar -->
+                    <div class="p-3 bg-light rounded-4 border mb-4">
+                        <div class="d-flex justify-content-between text-center small fw-semibold">
+                            <div class="{% if booking.status in ['Pending', 'Accepted', 'In Progress', 'Delivered', 'Completed'] %}text-primary{% else %}text-muted{% endif %}">
+                                <i class="fa-solid fa-clock-rotate-left d-block fs-5 mb-1"></i> Pending
+                            </div>
+                            <div class="{% if booking.status in ['Accepted', 'In Progress', 'Delivered', 'Completed'] %}text-primary{% else %}text-muted{% endif %}">
+                                <i class="fa-solid fa-user-check d-block fs-5 mb-1"></i> Accepted
+                            </div>
+                            <div class="{% if booking.status in ['In Progress', 'Delivered', 'Completed'] %}text-primary{% else %}text-muted{% endif %}">
+                                <i class="fa-solid fa-spinner d-block fs-5 mb-1"></i> In Progress
+                            </div>
+                            <div class="{% if booking.status in ['Delivered', 'Completed'] %}text-primary{% else %}text-muted{% endif %}">
+                                <i class="fa-solid fa-truck-ramp-box d-block fs-5 mb-1"></i> Delivered
+                            </div>
+                            <div class="{% if booking.status == 'Completed' %}text-success{% else %}text-muted{% endif %}">
+                                <i class="fa-solid fa-circle-check d-block fs-5 mb-1"></i> Completed
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Escrow & Phone UPI Payment Lifecycle Status Banner -->
+                    {% if booking.escrow_status == 'Pending_Deposit' %}
+                        <div class="p-4 bg-warning-subtle border border-warning rounded-4 mb-4">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge bg-warning text-dark text-uppercase fw-bold">Payment Action Required</span>
+                                        <span class="badge bg-white text-dark border">Phase 1 &bull; Escrow Deposit</span>
+                                    </div>
+                                    <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-shield-halved text-warning me-1"></i> 100% Escrow Protection Protocol</h5>
+                                    <p class="small text-secondary mb-0">
+                                        Deposit <strong>₹{{ "{:,.2f}".format(booking.agreed_amount) }}</strong> into the FreelanceConnect Trust Account via Phone UPI. Funds remain safely locked until you inspect and approve the completed deliverables.
+                                    </p>
+                                </div>
+                                {% if session.get('user_id') == booking.client_id or session.get('role') == 'admin' %}
+                                    <a href="{{ url_for('payment_checkout', booking_id=booking.booking_id) }}" class="btn btn-success btn-lg px-4 py-2 fw-bold text-nowrap shadow-sm">
+                                        <i class="fa-solid fa-qrcode me-2"></i> Pay with Phone UPI (Escrow)
+                                    </a>
+                                {% else %}
+                                    <div class="text-end">
+                                        <span class="badge bg-light text-dark border p-2 small">
+                                            <i class="fa-solid fa-clock-rotate-left text-warning me-1"></i> Awaiting Client's Escrow Deposit
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% elif booking.escrow_status == 'Escrow_Locked' %}
+                        <div class="p-4 bg-success-subtle border border-success rounded-4 mb-4">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge bg-success text-uppercase fw-bold"><i class="fa-solid fa-lock me-1"></i> Escrow Secured</span>
+                                        <span class="text-success small fw-bold"><i class="fa-solid fa-bolt me-1"></i> NPCI UPI 2.0 Confirmed</span>
+                                    </div>
+                                    <h5 class="fw-bold text-success mb-1">₹{{ "{:,.2f}".format(booking.agreed_amount) }} Secured in FreelanceConnect Trust</h5>
+                                    <div class="small text-muted">
+                                        Bank UTR Reference: <strong class="font-monospace text-dark">{{ active_txn.upi_ref_no if active_txn else 'CONFIRMED-UPI-430987' }}</strong> &bull;
+                                        Deposited on: <strong>{{ active_txn.completed_at if active_txn and active_txn.completed_at else 'Recent' }}</strong>
+                                    </div>
+                                </div>
+                                {% if active_txn %}
+                                    <a href="{{ url_for('view_payment_receipt', transaction_id=active_txn.transaction_id) }}" target="_blank" class="btn btn-outline-success btn-sm px-3 py-2 fw-semibold">
+                                        <i class="fa-solid fa-file-invoice me-1"></i> Tax Invoice & Receipt
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% elif booking.escrow_status == 'Released' %}
+                        <div class="p-4 bg-light border border-success rounded-4 mb-4">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge bg-success text-uppercase fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Escrow Settled & Released</span>
+                                    </div>
+                                    <h5 class="fw-bold text-dark mb-1">₹{{ "{:,.2f}".format(booking.agreed_amount) }} Released to Freelancer's UPI Wallet</h5>
+                                    <div class="small text-muted">Project successfully concluded with verified settlement.</div>
+                                </div>
+                                {% if release_txn or active_txn %}
+                                    <a href="{{ url_for('view_payment_receipt', transaction_id=release_txn.transaction_id if release_txn else active_txn.transaction_id) }}" target="_blank" class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold">
+                                        <i class="fa-solid fa-file-invoice me-1"></i> Official Tax Receipt
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Project Info Summary -->
+                    <div class="row g-3 small mb-4">
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-white border rounded-3">
+                                <span class="text-muted d-block">Client:</span>
+                                <strong class="text-dark">{{ booking.client_name }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-white border rounded-3">
+                                <span class="text-muted d-block">Freelancer:</span>
+                                <strong class="text-dark">{{ booking.freelancer_name }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-white border rounded-3">
+                                <span class="text-muted d-block">Agreed Investment:</span>
+                                <strong class="text-primary fs-6">₹{{ "{:,.0f}".format(booking.agreed_amount) }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-white border rounded-3">
+                                <span class="text-muted d-block">Delivery Target Date:</span>
+                                <strong class="text-dark">{{ booking.delivery_date }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">Project Requirements & Scope</h5>
+                    <div class="p-3 bg-light rounded-3 border text-secondary small mb-4" style="line-height: 1.7; white-space: pre-line;">
+                        {{ booking.requirements }}
+                    </div>
+
+                    <!-- Deliverables Submission Area (If Delivered or Completed) -->
+                    {% if booking.deliverable_notes or booking.deliverable_file %}
+                        <div class="p-4 bg-success-subtle border border-success rounded-4 mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-success">
+                                <i class="fa-solid fa-box-open fs-4"></i>
+                                <h5 class="fw-bold mb-0">Delivered Work & Files</h5>
+                            </div>
+                            <p class="text-dark small mb-2">{{ booking.deliverable_notes }}</p>
+                            {% if booking.deliverable_file %}
+                                <a href="{{ booking.deliverable_file }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                    <i class="fa-solid fa-download me-1"></i> Download Deliverables File
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Freelancer Action Controls -->
+                    {% if session.get('user_id') == booking.freelancer_id %}
+                        <div class="border-top pt-4">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-briefcase text-primary me-2"></i> Freelancer Workflow Actions</h5>
+
+                            {% if booking.status == 'Pending' %}
+                                <div class="d-flex gap-2">
+                                    <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking.booking_id) }}">
+                                        <input type="hidden" name="status" value="Accepted">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fa-solid fa-check me-1"></i> Accept Booking
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking.booking_id) }}" onsubmit="return confirm('Decline this booking?');">
+                                        <input type="hidden" name="status" value="Rejected">
+                                        <button type="submit" class="btn btn-outline-danger">
+                                            <i class="fa-solid fa-xmark me-1"></i> Reject
+                                        </button>
+                                    </form>
+                                </div>
+
+                            {% elif booking.status == 'Accepted' %}
+                                <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking.booking_id) }}">
+                                    <input type="hidden" name="status" value="In Progress">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa-solid fa-play me-1"></i> Mark as Work In Progress
+                                    </button>
+                                </form>
+
+                            {% elif booking.status == 'In Progress' %}
+                                <div class="card card-body bg-light border p-3">
+                                    <h6 class="fw-bold text-primary mb-2">Submit Final Deliverables to Client</h6>
+                                    <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking.booking_id) }}" enctype="multipart/form-data">
+                                        <input type="hidden" name="status" value="Delivered">
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold">Delivery Notes & Overview</label>
+                                            <textarea name="deliverable_notes" rows="3" class="form-control" placeholder="Describe the completed deliverables, download links, source code, or handover instructions..." required></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold">Upload Deliverable Package (ZIP, PDF, Image - Optional)</label>
+                                            <input type="file" name="deliverable_file" class="form-control">
+                                        </div>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fa-solid fa-cloud-arrow-up me-1"></i> Mark Delivered & Submit Work
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Client Action Controls (Mark Complete & Review) -->
+                    {% if session.get('user_id') == booking.client_id %}
+                        {% if booking.status == 'Delivered' %}
+                            <div class="border-top pt-4">
+                                <div class="card card-body bg-light border-success p-4 rounded-4">
+                                    <h5 class="fw-bold text-success mb-2"><i class="fa-solid fa-circle-check me-2"></i> Deliverables Received!</h5>
+                                    <p class="small text-secondary mb-3">
+                                        Please review the submitted deliverables. Once verified, approving the work will release the locked project funds (<strong>₹{{ "{:,.2f}".format(booking.agreed_amount) }}</strong>) directly into <strong>{{ booking.freelancer_name }}</strong>'s UPI Wallet and unlock verified review submission.
+                                    </p>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% if booking.escrow_status == 'Escrow_Locked' %}
+                                            <form method="POST" action="{{ url_for('release_escrow_payment', booking_id=booking.booking_id) }}" onsubmit="return confirm('Release locked escrow funds to {{ booking.freelancer_name }}?');">
+                                                <button type="submit" class="btn btn-success btn-lg fw-bold shadow-sm">
+                                                    <i class="fa-solid fa-lock-open me-2"></i> Approve Deliverables & Release Escrow (₹{{ "{:,.0f}".format(booking.agreed_amount) }})
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form method="POST" action="{{ url_for('complete_booking', booking_id=booking.booking_id) }}" onsubmit="return confirm('Confirm project completion? This will finalize the engagement and allow leaving a verified review.');">
+                                                <button type="submit" class="btn btn-success btn-lg fw-bold">
+                                                    <i class="fa-solid fa-award me-2"></i> Confirm Project Completion
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Review / Rating Sidebar & Escrow Breakdown -->
+            <div class="col-lg-4">
+                <!-- Escrow & Financial Summary Card -->
+                <div class="card custom-card p-4 mb-4">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-shield-halved text-success me-2"></i> Escrow Financials</h5>
+                    <div class="list-group list-group-flush small mb-3">
+                        <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Total Project Value</span>
+                            <strong class="text-primary fs-6">₹{{ "{:,.2f}".format(booking.agreed_amount) }}</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Payment Rail</span>
+                            <span class="badge bg-light text-dark border"><i class="fa-solid fa-bolt text-warning me-1"></i> NPCI UPI 2.0</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                            <span class="text-muted">Escrow Status</span>
+                            <span class="badge {% if booking.escrow_status == 'Released' %}bg-success{% elif booking.escrow_status == 'Escrow_Locked' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                {{ booking.escrow_status|replace('_', ' ') }}
+                            </span>
+                        </div>
+                        {% if active_txn and active_txn.upi_ref_no %}
+                            <div class="list-group-item d-flex justify-content-between px-0 py-2">
+                                <span class="text-muted">Bank UTR</span>
+                                <span class="font-monospace text-dark">{{ active_txn.upi_ref_no }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if booking.escrow_status == 'Pending_Deposit' and (session.get('user_id') == booking.client_id or session.get('role') == 'admin') %}
+                        <a href="{{ url_for('payment_checkout', booking_id=booking.booking_id) }}" class="btn btn-success w-100 py-2 fw-bold mb-2">
+                            <i class="fa-solid fa-qrcode me-1"></i> Deposit via Phone UPI
+                        </a>
+                    {% elif active_txn %}
+                        <a href="{{ url_for('view_payment_receipt', transaction_id=active_txn.transaction_id) }}" target="_blank" class="btn btn-outline-secondary w-100 py-2 small mb-2">
+                            <i class="fa-solid fa-file-invoice me-1"></i> View Tax Invoice / Receipt
+                        </a>
+                    {% endif %}
+
+                    {% if milestones %}
+                        <div class="border-top pt-3 mt-2">
+                            <div class="fw-bold small text-dark mb-2">Project Milestones ({{ milestones|length }})</div>
+                            {% for m in milestones %}
+                                <div class="p-2 bg-light rounded-2 border mb-2 small">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong class="text-dark">{{ m.title }}</strong>
+                                        <span class="text-primary fw-bold">₹{{ "{:,.0f}".format(m.amount) }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                        <span class="text-muted" style="font-size: 0.72rem;">Target: {{ m.delivery_date or 'Flexible' }}</span>
+                                        <span class="badge {% if m.status == 'Approved_Released' %}bg-success{% elif m.status == 'Funded_Escrow' %}bg-warning text-dark{% else %}bg-secondary{% endif %}" style="font-size: 0.65rem;">
+                                            {{ m.status|replace('_', ' ') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="card custom-card p-4 sticky-top" style="top: 85px;">
+                    <h5 class="fw-bold mb-3"><i class="fa-regular fa-star text-warning me-2"></i> Ratings & Review</h5>
+
+                    {% if review %}
+                        <!-- Existing Review Card -->
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="text-dark small">{{ review.client_name }}</strong>
+                                <div>
+                                    {% for i in range(review.rating) %}
+                                        <i class="fa-solid fa-star text-warning small"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p class="text-secondary small mb-1 fst-italic">"{{ review.comment }}"</p>
+                            <small class="text-muted">{{ review.created_at[:10] }}</small>
+                        </div>
+                    {% elif booking.status == 'Completed' and session.get('user_id') == booking.client_id %}
+                        <!-- Review Submission Form for Client -->
+                        <div class="card card-body bg-light border p-3 rounded-3">
+                            <h6 class="fw-bold text-dark mb-2">Leave a Verified Review</h6>
+                            <form method="POST" action="{{ url_for('submit_review', booking_id=booking.booking_id) }}">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Rating (1 to 5 Stars)</label>
+                                    <select name="rating" class="form-select" required>
+                                        <option value="5">⭐⭐⭐⭐⭐ (5 - Exceptional)</option>
+                                        <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
+                                        <option value="3">⭐⭐⭐ (3 - Average)</option>
+                                        <option value="2">⭐⭐ (2 - Below Expectations)</option>
+                                        <option value="1">⭐ (1 - Unsatisfactory)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Feedback & Testimonial</label>
+                                    <textarea name="comment" rows="3" class="form-control" placeholder="Share your experience working with this freelancer..." required></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-warning w-100 fw-bold">
+                                    <i class="fa-solid fa-star me-1"></i> Post Review
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <p class="small text-muted mb-0">
+                            Verified client reviews are unlocked upon full project completion.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

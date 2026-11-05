@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Fixed-Price Services - FreelanceConnect{% endblock %}
+
+{% block content %}
+<div class="bg-white border-bottom py-4 mb-4">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <span class="badge bg-info-subtle text-info fw-bold mb-1">Model B: Predefined Packages</span>
+                <h1 class="h3 fw-bold mb-1">Browse Fixed-Price Services</h1>
+                <p class="text-secondary small mb-0">Select &rarr; Book &rarr; Confirm &rarr; Deliver. Guaranteed prices and delivery timelines.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('explore_freelancers') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="fa-solid fa-comments me-1"></i> Looking for Custom Projects & Consultation?
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Category Tabs -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{{ url_for('browse_services') }}" class="category-pill {% if not selected_category %}active{% endif %}">
+            All Services
+        </a>
+        <a href="{{ url_for('browse_services', category='Development') }}" class="category-pill {% if selected_category == 'Development' %}active{% endif %}">
+            <i class="fa-solid fa-code"></i> Development
+        </a>
+        <a href="{{ url_for('browse_services', category='Design') }}" class="category-pill {% if selected_category == 'Design' %}active{% endif %}">
+            <i class="fa-solid fa-pen-nib"></i> Design
+        </a>
+        <a href="{{ url_for('browse_services', category='Writing') }}" class="category-pill {% if selected_category == 'Writing' %}active{% endif %}">
+            <i class="fa-solid fa-pen-fancy"></i> Writing
+        </a>
+        <a href="{{ url_for('browse_services', category='Marketing') }}" class="category-pill {% if selected_category == 'Marketing' %}active{% endif %}">
+            <i class="fa-solid fa-bullhorn"></i> Marketing
+        </a>
+    </div>
+
+    <!-- Search Form -->
+    <form action="{{ url_for('browse_services') }}" method="GET" class="card shadow-sm p-3 border rounded-3 mb-4 bg-white">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-9">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="q" value="{{ query or '' }}" class="form-control border-0 shadow-none ps-0" placeholder="Search service title or description (e.g. Logo, API, Landing Page)...">
+                    {% if selected_category %}
+                        <input type="hidden" name="category" value="{{ selected_category }}">
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-service w-100">Filter Services</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Services Grid -->
+    {% if services %}
+        <div class="row g-4">
+            {% for s in services %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card custom-card interactive-card h-100 d-flex flex-column">
+                    <img src="{{ s.image_url or 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600' }}" 
+                         alt="{{ s.title }}" class="card-img-top" style="height: 190px; object-fit: cover;">
+                    <div class="card-body p-4 d-flex flex-column flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-info-subtle text-info fw-semibold">{{ s.category }}</span>
+                            <span class="small text-muted"><i class="fa-regular fa-clock me-1"></i> {{ s.delivery_days }} days delivery</span>
+                        </div>
+
+                        <h5 class="fw-bold mb-2">
+                            <a href="{{ url_for('service_details', service_id=s.service_id) }}" class="text-dark text-decoration-none">
+                                {{ s.title }}
+                            </a>
+                        </h5>
+
+                        <p class="text-muted small mb-3 text-truncate-2">
+                            {{ s.description }}
+                        </p>
+
+                        <div class="d-flex align-items-center gap-2 mb-3 mt-auto">
+                            <img src="{{ s.avatar_url or 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100' }}" 
+                                 class="rounded-circle" width="30" height="30" style="object-fit: cover;">
+                            <a href="{{ url_for('freelancer_profile', freelancer_id=s.freelancer_id) }}" class="small fw-semibold text-secondary text-decoration-none">
+                                {{ s.freelancer_name }}
+                            </a>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <div>
+                                <small class="text-muted d-block">Fixed Price</small>
+                                <span class="fw-bold text-primary fs-5">₹{{ "{:,.0f}".format(s.price) }}</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('service_details', service_id=s.service_id) }}" class="btn btn-outline-secondary btn-sm">
+                                    Details
+                                </a>
+                                <a href="{{ url_for('book_service', service_id=s.service_id) }}" class="btn btn-service btn-sm">
+                                    Book Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card custom-card text-center p-5">
+            <i class="fa-solid fa-cubes text-muted fs-1 mb-3"></i>
+            <h4>No Services Found</h4>
+            <p class="text-muted">No predefined service packages match your search filter.</p>
+            <div>
+                <a href="{{ url_for('browse_services') }}" class="btn btn-primary btn-sm">Reset Filters</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
