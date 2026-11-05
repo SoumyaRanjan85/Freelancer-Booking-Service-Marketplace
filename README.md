@@ -5,11 +5,11 @@
 [![SQLite](https://img.shields.io/badge/Database-SQLite-lightgrey.svg)](https://www.sqlite.org/)
 [![Bootstrap 5](https://img.shields.io/badge/UI-Bootstrap%205-purple.svg)](https://getbootstrap.com/)
 
-A modern, choice-driven freelance marketplace that connects clients with verified professionals through **two distinct hiring models**, eliminating the race-to-the-bottom bidding wars found in conventional freelance platforms.
+A modern, choice-driven freelance marketplace that connects clients with verified professionals through **two distinct hiring models** (alongside an open client requirement board), eliminating the race-to-the-bottom bidding wars found in conventional freelance platforms.
 
 ---
 
-## 🌟 The Core Differentiating Concept: Two Ways to Hire
+## 🌟 The Core Differentiating Concept: Flexible Hiring Architecture
 
 ### 1. Model A — Consultation-Based Project Hiring (Custom Work)
 **Discuss &rarr; Negotiate &rarr; Agree &rarr; Hire**
@@ -32,10 +32,11 @@ A modern, choice-driven freelance marketplace that connects clients with verifie
   4. Freelancer submits final deliverables.
   5. Client confirms completion and unlocks the verified 5-star review system.
 
-### 3. Model C — Client Project Requirements Board
+### 3. Model C — Client Project Requirements Board (Open Briefs)
+**Post Brief &rarr; Review Pitches &rarr; Invite &rarr; Consult**
 * Clients post open project briefs with budget ranges and target deadlines.
-* Freelancers browse and **Express Interest** (no bidding wars).
-* Clients review interested candidate pitches and invite their top choice to a consultation.
+* Freelancers browse and **Express Interest** with custom pitches (no downward price bidding).
+* Clients review interested candidate pitches and invite their top choice directly into a consultation.
 
 ---
 
@@ -68,26 +69,28 @@ python -m unittest test_app.py -v
 
 ---
 
-## 🔑 Pre-Seeded Demo Accounts (1-Click AutoFill on Login)
+## 🔑 Pre-Seeded Demo Accounts
 
-| Role | Name | Email | Password | Details |
-| :--- | :--- | :--- | :--- | :--- |
-| **Admin** | Marketplace Admin | `admin@freelanceconnect.com` | `admin123` | Platform KPIs, user moderation, service moderation |
-| **Client 1** | Arjun Mehta | `client@example.com` | `client123` | Active custom e-commerce project, posted requirements |
-| **Client 2** | Priya Sharma | `priya@example.com` | `client123` | Completed fixed-price logo booking with review |
-| **Freelancer 1** | Vikram Rao | `freelancer@example.com` | `freelancer123` | Full-Stack Python & Flask Developer |
-| **Freelancer 2** | Ananya Sen | `designer@example.com` | `designer123` | UI/UX & Brand Identity Designer |
-| **Freelancer 3** | Rohan Verma | `writer@example.com` | `writer123` | Technical Copywriter & SEO Specialist |
-| **Freelancer 4** | Neha Patel | `mobile@example.com` | `mobile123` | Flutter & Mobile App Developer |
+The `/login` page includes **1-Click AutoFill** buttons for primary evaluation accounts for quick role-switching.
 
-*Tip: The `/login` page includes 1-click autofill buttons for fast presentation switching!*
+| Role | Name | Email | Password | 1-Click AutoFill | Details |
+| :--- | :--- | :--- | :--- | :---: | :--- |
+| **Admin** | Marketplace Admin | `admin@freelanceconnect.com` | `admin123` | ✅ | Platform KPIs, user moderation, service moderation |
+| **Client 1** | Arjun Mehta | `client@example.com` | `client123` | ✅ | Active custom e-commerce project, posted requirements |
+| **Client 2** | Priya Sharma | `priya@example.com` | `client123` | ❌ | Completed fixed-price logo booking with review |
+| **Freelancer 1** | Vikram Rao | `freelancer@example.com` | `freelancer123` | ✅ | Full-Stack Python & Flask Developer |
+| **Freelancer 2** | Ananya Sen | `designer@example.com` | `designer123` | ✅ | UI/UX & Brand Identity Designer |
+| **Freelancer 3** | Rohan Verma | `writer@example.com` | `writer123` | ❌ | Technical Copywriter & SEO Specialist |
+| **Freelancer 4** | Neha Patel | `mobile@example.com` | `mobile123` | ❌ | Flutter & Mobile App Developer |
+
+*Note: Additional domain experts (AI, DevOps, Web3, 3D, Cybersecurity, Analytics) are also pre-seeded with password `password123`.*
 
 ---
 
 ## 🎬 How to Demonstrate During Evaluation
 
 ### Scenario 1: Custom Project Hiring (Model A)
-1. Log in as **Client** (`client@example.com` / `client123`).
+1. Log in as **Client** using the 1-click button (`client@example.com` / `client123`).
 2. Go to **Explore Freelancers** &rarr; select **Neha Patel** (Flutter Developer).
 3. Click **Consult** &rarr; submit project title: *"Mobile Food Delivery App"*, meeting slot, and requirements.
 4. Log out and log in as **Freelancer** (`mobile@example.com` / `mobile123`).
@@ -100,28 +103,36 @@ python -m unittest test_app.py -v
 
 ### Scenario 2: Fixed-Price Service Booking & Review (Model B)
 1. Log in as **Client** (`client@example.com` / `client123`).
-2. Go to **Fixed Services** &rarr; pick *"Professional Logo Design & Brand Identity Kit"* (₹1,499).
+2. Go to **Fixed Services** &rarr; pick *"Complete Brand Identity & Modern Vector Logo Suite"* (₹1,499).
 3. Click **Book Now** &rarr; enter start date and brand instructions.
-4. Log in as **Designer** (`designer@example.com` / `designer123`).
+4. Log in as **Designer** using the 1-click button (`designer@example.com` / `designer123`).
 5. In **Dashboard &rarr; Orders & Custom Projects**, accept the booking and mark it **In Progress**.
 6. When work is done, submit final deliverable notes & files &rarr; status becomes **Delivered**.
 7. Log in as **Client** &rarr; click **Confirm Project Completion**.
 8. Fill out the **5-Star Rating & Review Form**.
 9. Go to the Designer's public profile: the new review appears and the average rating is recalculated automatically!
 
+### Scenario 3: Open Project Requirements Board (Model C)
+1. Log in as **Client** (`client@example.com` / `client123`).
+2. Go to **Client Requests** &rarr; click **Post New Requirement**.
+3. Submit a project brief with category, required skills, budget range (e.g., ₹20,000 - ₹35,000), and deadline.
+4. Log out and log in as **Freelancer** (`freelancer@example.com` / `freelancer123`).
+5. Go to **Client Requests** &rarr; open the newly posted requirement &rarr; submit an **Expression of Interest** with a tailored pitch.
+6. Log back in as **Client** &rarr; open the requirement to review interested candidate pitches &rarr; click **Invite to Consultation** to seamlessly transition to Model A.
+
 ---
 
 ## 🗄️ Database Architecture (SQLite3)
 
 The database schema (`database/schema.sql`) contains 9 relational tables:
-1. **`users`**: Client, Freelancer, and Admin accounts with hashed passwords and status.
+1. **`users`**: Client, Freelancer, and Admin accounts with hashed passwords and status (`active`, `suspended`).
 2. **`freelancer_profiles`**: Professional headlines, skills (comma-separated), experience, bio, portfolio URL, hourly rate, availability, and rating aggregates.
-3. **`services`**: Predefined fixed-price packages, delivery timelines, deliverables checklist, revisions count, status.
-4. **`consultations`**: Model A meeting requests, date/times, meeting links, notes, and statuses.
-5. **`client_requests`**: Model C open requirement board briefs with budget min/max and target deadlines.
-6. **`client_request_interests`**: Freelancers expressing interest in client requirements.
+3. **`services`**: Predefined fixed-price packages, delivery timelines, deliverables checklist, revisions count, status (`Active`, `Inactive`).
+4. **`consultations`**: Model A meeting requests, date/times, meeting links, notes, and statuses (`Pending`, `Accepted`, `Rejected`, `Reschedule Requested`, `Completed`, `Cancelled`).
+5. **`client_requests`**: Model C open requirement board briefs with budget min/max and target deadlines (`Open`, `Closed`).
+6. **`client_request_interests`**: Freelancers expressing interest in client requirements (`Interested`, `Invited`, `Declined`).
 7. **`proposals`**: Negotiation iterations storing version numbers, proposed amounts, delivery days, scope, and status (`Pending`, `Accepted`, `Rejected`, `Superseded`).
-8. **`bookings`**: Unified tracking table handling both Fixed services (`service_id`) and Custom engagements (`proposal_id`) across 5 lifecycle stages (`Pending` &rarr; `Accepted` &rarr; `In Progress` &rarr; `Delivered` &rarr; `Completed`).
+8. **`bookings`**: Unified tracking table handling both Fixed services (`service_id`) and Custom engagements (`proposal_id`) across 5 lifecycle stages (`Pending` &rarr; `Accepted` &rarr; `In Progress` &rarr; `Delivered` &rarr; `Completed`), plus terminal states (`Rejected`, `Cancelled`).
 9. **`reviews`**: Verified 1–5 star ratings and feedback linked uniquely to completed bookings.
 
 ---
